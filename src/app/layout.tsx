@@ -16,7 +16,7 @@ const sourceSans = Source_Sans_3({
 
 export const metadata: Metadata = {
   title: {
-    default: "Bärenstuben Ferienwohnungen | Esens an der Oldendorfer Straße",
+    default: "Bärenstuben Ferienwohnungen | Esens",
     template: "%s | Bärenstuben Ferienwohnungen",
   },
   description:
