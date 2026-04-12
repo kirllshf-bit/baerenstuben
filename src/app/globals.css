@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* === Farbsystem (abgeleitet aus Logo #723E14) === */
+  --color-primary: #723E14;
+  --color-primary-light: #8B5A2B;
+  --color-primary-pale: #F5EDE4;
+  --color-primary-dark: #5A3010;
+
+  --color-secondary: #D4B896;
+  --color-secondary-light: #E8D5BE;
+
+  --color-accent-green: #7A9E7E;
+  --color-accent-green-light: #EAF0EB;
+  --color-accent-blue: #8DA4B4;
+  --color-accent-blue-light: #E8EEF2;
+
+  --color-warm-50: #FDFCFA;
+  --color-warm-100: #F8F5F1;
+  --color-warm-200: #F0EAE1;
+  --color-warm-300: #C4B8AC;
+  --color-warm-500: #8C7B6B;
+  --color-warm-700: #5C4A3A;
+  --color-warm-900: #2C1810;
+
+  --color-error: #C44B3F;
+  --color-success: #5A8F5E;
+
+  /* === Typografie === */
+  --font-sans: var(--font-source-sans), "Source Sans 3", system-ui, sans-serif;
+  --font-serif: var(--font-lora), "Lora", Georgia, serif;
+
+  /* === Abstände === */
+  --spacing-section: 6rem;
+  --spacing-section-sm: 3.5rem;
+
+  /* === Schatten === */
+  --shadow-card: 0 2px 16px rgba(114, 62, 20, 0.07);
+  --shadow-card-hover: 0 8px 32px rgba(114, 62, 20, 0.12);
+  --shadow-soft: 0 1px 3px rgba(114, 62, 20, 0.04);
+
+  /* === Border Radius === */
+  --radius-card: 0.75rem;
+  --radius-btn: 0.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* === Base Styles === */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 4.5rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--color-warm-100);
+    color: var(--color-warm-900);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-serif);
+    color: var(--color-primary-dark);
+  }
+
+  ::selection {
+    background-color: var(--color-primary-pale);
+    color: var(--color-primary-dark);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* === Utility Classes === */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
 }
