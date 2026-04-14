@@ -28,7 +28,7 @@ const COMMON_AMENITIES: AmenityItem[] = [
   { icon: Maximize2, label: "Alle im Erdgeschoss" },
   { icon: BedDouble, label: "Bettwäsche & Handtücher" },
   { icon: Snowflake, label: "Kühlschrank" },
-  { icon: Wind, label: "Föhn" },
+  { icon: Wind, label: "Moderner Multikocher" },
   { icon: ParkingCircle, label: "Kostenloser Parkplatz" },
   { icon: Shirt, label: "Kleiderschrank" },
   { icon: KeyRound, label: "Schlüsselsafe / Self-Check-in" },

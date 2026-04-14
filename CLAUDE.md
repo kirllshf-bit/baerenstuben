@@ -39,12 +39,12 @@ npm run lint                   # ESLint
 1. **Runtime**: API route `/api/availability` returns merged blocked dates per apartment type. `/api/availability-units` returns per-unit blocked dates for combination search.
 2. **iCal feeds**: Per unit, both Booking + Airbnb feeds are fetched and Union-merged. Config in `src/lib/apartments.ts` (`ICAL_FEEDS`), URLs in `.env.local`.
 3. **Client**: `useUnitsAvailability` hook fetches `/api/availability-units` → `AvailabilityCalendar` shows dates blocked only when ALL units are blocked. `InquiryForm` uses `findCombinations()` to find valid apartment combos for the group.
-4. **Inquiry**: `InquiryForm` builds a pre-formatted `mailto:` link with all booking details and opens the user's email client.
+4. **Inquiry**: `InquiryForm` POSTs to `/api/inquiry` → sends email via SMTP (nodemailer). Owner gets full details with Reply-To set to guest; guest gets a confirmation email.
 5. **Build-time fallback**: `scripts/generate-availability.ts` can generate static JSON files (not used in production Node.js server mode).
 
 ### Critical Business Logic: 3-Unit Merge + Group Combinations
 
-There are 5 physical apartments but only 3 types shown in Amenities. The "Apartment (49 m²)" type has 3 identical units. The calendar shows a date as blocked only when **all 5 units** are booked. The inquiry form uses `src/lib/combinations.ts` to find valid combinations of available units that fit the group size.
+There are 5 physical apartments but only 3 types shown in Amenities. The "Apartment (49 m²)" type has 3 identical units. The calendar shows a date as blocked only when **all 5 units** are simultaneously booked. The inquiry form uses `src/lib/combinations.ts` to find valid combinations of available units for the group size. Singles shown first (if they fit); multi-unit combos shown for larger groups. Max 4 options, deduplicated by type-signature (never shows "Apartment 1/2/3" — always just "Apartment").
 
 ### Apartment Pricing (`src/lib/apartments.ts`)
 
@@ -58,7 +58,7 @@ Minimum stay: 2 nights. At least 1 adult required. Child age max: 17. **5% disco
 
 ### Mapbox Map (`src/components/ui/MapboxMap.tsx`)
 
-Loaded via dynamic `import("mapbox-gl")` (lazy). Token from `NEXT_PUBLIC_MAPBOX_TOKEN`. Style: `mapbox://styles/mapbox/light-v11`. POI markers (EDEKA, Netto, Volksbank) use fixed `34×34px` wrappers with `anchor: "center"` — do not change anchor or add transforms that affect layout, as this causes markers to jump. Coordinates are verified via Nominatim.
+Loaded via dynamic `import("mapbox-gl")` (lazy). Token from `NEXT_PUBLIC_MAPBOX_TOKEN`. Style: `mapbox://styles/mapbox/light-v11`. POI markers use fixed `34×34px` wrappers with `anchor: "center"` — do not change anchor or add transforms that affect layout, as this causes markers to jump. Current POIs: EDEKA, Volksbank, Innenstadt, Fahrradverleih. Uses `initializingRef` + `destroyed` flag to prevent double-init in React StrictMode.
 
 ## Styling
 
@@ -70,9 +70,10 @@ Typography: `Lora` (serif, headings) + `Source Sans 3` (sans, body), loaded via 
 
 Defined in `.env.local`. Key variables:
 - `ICAL_APARTMENT_1` through `ICAL_APARTMENT_PREMIUM` — Booking.com iCal URLs
-- `EMAIL_TO` — recipient for inquiries
+- `ICAL_APARTMENT_1_AIRBNB` through `ICAL_APARTMENT_PREMIUM_AIRBNB` — Airbnb iCal URLs (union-merged per unit)
+- `EMAIL_TO` — recipient for inquiry emails
 - `NEXT_PUBLIC_MAPBOX_TOKEN` — Mapbox GL JS public token
-- `SMTP_*` — currently unused (mailto fallback), reserved for future server-based email
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` — IONOS SMTP for `/api/inquiry` email sending
 
 ## Language
 
