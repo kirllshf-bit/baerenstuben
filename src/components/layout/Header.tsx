@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { label: "Galerie", href: "#galerie" },
   { label: "Lage", href: "#lage" },
   { label: "Verfügbarkeit", href: "#verfuegbarkeit" },
+  { label: "Häufige Fragen", href: "#faq" },
   { label: "Kontakt", href: "#kontakt" },
 ];
 

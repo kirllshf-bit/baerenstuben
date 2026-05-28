@@ -35,6 +35,8 @@ interface InquiryBody {
   totalAfterDiscount: number;
   discount: number;
   discountPercent: number;
+  /** "winter" wenn Winterpreis angewendet wurde, sonst "normal" (optional, abwärtskompatibel) */
+  pricingMode?: "normal" | "winter";
   /** Honeypot-Feld: muss leer sein */
   website?: string;
 }
@@ -61,7 +63,9 @@ function buildOwnerEmail(d: InquiryBody): string {
 
   const priceLine = d.discount > 0
     ? `${formatPrice(d.totalAfterDiscount)} (${formatPrice(d.totalPrice)} abzgl. ${d.discountPercent}% Rabatt)`
-    : formatPrice(d.totalPrice);
+    : d.pricingMode === "winter"
+      ? `${formatPrice(d.totalPrice)} (Winterpreis 01.11.–15.03.)`
+      : formatPrice(d.totalPrice);
 
   return `Neue Anfrage über bärenstuben.de
 
@@ -89,7 +93,9 @@ ${d.message?.trim() || "–"}
 function buildGuestEmail(d: InquiryBody): string {
   const priceLine = d.discount > 0
     ? `${formatPrice(d.totalAfterDiscount)} (inkl. ${d.discountPercent}% Langzeit-Rabatt)`
-    : formatPrice(d.totalPrice);
+    : d.pricingMode === "winter"
+      ? `${formatPrice(d.totalPrice)} (Winterpreis 01.11.–15.03.)`
+      : formatPrice(d.totalPrice);
 
   return `Liebe/r ${d.name.trim()},
 

@@ -90,6 +90,28 @@ export function Footer() {
           </div>
         </div>
 
+        {/* Angebotskonditionen (Ziel der Fußnoten ¹ / ²) */}
+        <div className="mt-12 pt-8 border-t border-white/10">
+          <h3 className="font-serif text-base font-medium text-white/80 mb-4">Angebotskonditionen</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 text-xs leading-relaxed text-white/55 max-w-3xl">
+            <p id="angebot-winter" className="scroll-mt-28">
+              <sup className="text-secondary font-semibold">1</sup>{" "}
+              <span className="font-semibold text-white/75">Winterangebot:</span> gültig vom 01.11.
+              bis 15.03. (jährlich), ab 5&nbsp;Nächten. Preis pro Nacht je Wohnungskategorie:
+              Apartment 80&nbsp;€, Apartment Groß 90&nbsp;€, Apartment Premium 110&nbsp;€.
+              Der Winterpreis gilt nur, wenn der gesamte Aufenthalt in diesen Zeitraum fällt;
+              ein zusätzlicher Rabatt wird nicht gewährt. Aufpreis für weitere Personen unverändert.
+            </p>
+            <p id="angebot-saison" className="scroll-mt-28">
+              <sup className="text-secondary font-semibold">2</sup>{" "}
+              <span className="font-semibold text-white/75">Saisonangebot:</span> 5&nbsp;% Rabatt
+              auf den Gesamtpreis ab 5&nbsp;Nächten, außerhalb des Winterzeitraums.
+              Nicht mit dem Winterangebot kombinierbar. Mindestaufenthalt 2&nbsp;Nächte.
+              Alle Preise sind unverbindliche Richtwerte; maßgeblich ist unsere Bestätigung per E-Mail.
+            </p>
+          </div>
+        </div>
+
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40">
           <p>&copy; {new Date().getFullYear()} Bärenstuben Ferienwohnungen. Alle Rechte vorbehalten.</p>

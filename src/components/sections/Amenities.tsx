@@ -6,6 +6,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { cn } from "@/lib/utils";
 import { APARTMENTS } from "@/lib/apartments";
 import { formatEuro } from "@/lib/utils";
+import { OfferFootnote } from "@/components/ui/OfferFootnote";
 import {
   Maximize2, Users, BedDouble, Sofa, CookingPot, Bath,
   Wifi, Tv, Snowflake, Coffee, Wind,
@@ -28,7 +29,7 @@ const COMMON_AMENITIES: AmenityItem[] = [
   { icon: Maximize2, label: "Alle im Erdgeschoss" },
   { icon: BedDouble, label: "Bettwäsche & Handtücher" },
   { icon: Snowflake, label: "Kühlschrank" },
-  { icon: Wind, label: "Moderner Multikocher" },
+  { icon: Wind, label: "Föhn" },
   { icon: ParkingCircle, label: "Kostenloser Parkplatz" },
   { icon: Shirt, label: "Kleiderschrank" },
   { icon: KeyRound, label: "Schlüsselsafe / Self-Check-in" },
@@ -166,6 +167,14 @@ export function Amenities() {
               <p className="text-warm-400 text-xs mt-2">
                 Maximal {config.maxGuests} Personen · Mindestaufenthalt 2 Nächte
               </p>
+              <div className="mt-3 pt-3 border-t border-warm-200 flex items-center gap-1.5 text-[13px] text-accent-blue">
+                <Snowflake className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.75} />
+                <span>
+                  Winterpreis ab <span className="font-semibold text-primary-dark">{formatEuro(config.winterPrice)}</span> / Nacht
+                  <span className="text-warm-400"> · 01.11.–15.03., ab 5 Nächten</span>
+                  <OfferFootnote offer="winter" />
+                </span>
+              </div>
             </div>
           </div>
 

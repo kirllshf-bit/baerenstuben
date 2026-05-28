@@ -1,5 +1,5 @@
-import { APARTMENTS, calculatePrice } from "./apartments";
-import type { ApartmentType, ApartmentPriceCalculation } from "@/types/apartment";
+import { APARTMENTS, calculatePrice, isWinterStay, normalDiscountPercent } from "./apartments";
+import type { ApartmentType, ApartmentPriceCalculation, PricingMode } from "@/types/apartment";
 
 /** Eine einzelne Einheit in einer Kombination */
 export interface UnitAllocation {
@@ -22,6 +22,8 @@ export interface ApartmentCombination {
   discount: number;
   discountPercent: number;
   nights: number;
+  /** "winter" wenn der Aufenthalt vollständig im Winterzeitraum liegt (≥5 Nächte), sonst "normal". */
+  pricingMode: PricingMode;
 }
 
 /**
@@ -180,6 +182,10 @@ export function findCombinations(
     isUnitAvailable(u.unitId, checkIn, checkOut, unitBlockedDates)
   );
 
+  // Winterpreis-Erkennung EINMAL für den gesamten Aufenthalt – konsistent für
+  // Pro-Unit-Preis und Kombinations-Gesamtpreis.
+  const winter = isWinterStay(checkIn, checkOut, nights);
+
   // Alle möglichen Subsets durchprobieren (2^n, max 32)
   const n = availableUnits.length;
   const rawResults: ApartmentCombination[] = [];
@@ -200,7 +206,7 @@ export function findCombinations(
 
     // Preis berechnen
     const unitAllocations: UnitAllocation[] = selectedUnits.map((unit, i) => {
-      const price = calculatePrice(unit.type, allocation[i].adults, allocation[i].children, nights);
+      const price = calculatePrice(unit.type, allocation[i].adults, allocation[i].children, nights, winter);
       return {
         unitId: unit.unitId,
         apartmentType: unit.type,
@@ -213,7 +219,8 @@ export function findCombinations(
     });
 
     const totalPrice = unitAllocations.reduce((s, u) => s + u.price.totalPrice, 0);
-    const discountPercent = nights >= 5 ? 5 : 0;
+    // Im Winter kein zusätzlicher Prozent-Rabatt, sonst regulärer Langzeit-Rabatt.
+    const discountPercent = winter ? 0 : normalDiscountPercent(nights);
     const discount = Math.round(totalPrice * discountPercent / 100);
     const totalAfterDiscount = totalPrice - discount;
 
@@ -225,6 +232,7 @@ export function findCombinations(
       discount,
       discountPercent,
       nights,
+      pricingMode: winter ? "winter" : "normal",
     });
   }
 

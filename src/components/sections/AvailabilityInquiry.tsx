@@ -6,6 +6,8 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { AvailabilityCalendar } from "@/components/calendar/AvailabilityCalendar";
 import { InquiryForm } from "@/components/forms/InquiryForm";
 import { useUnitsAvailability } from "@/hooks/useUnitsAvailability";
+import { WinterOffer } from "@/components/sections/WinterOffer";
+import { SeasonOffer } from "@/components/sections/SeasonOffer";
 import { Info, RefreshCw } from "lucide-react";
 
 export function AvailabilityInquiry() {
@@ -72,6 +74,18 @@ export function AvailabilityInquiry() {
               Dies ist <strong>keine verbindliche Buchung</strong> –
               wir bestätigen Ihnen alles persönlich per E-Mail.
             </p>
+          </div>
+        </div>
+
+        {/* Angebote – ganzjährig sichtbar. Der Rechner wendet je nach
+            Reisezeitraum automatisch nur das jeweils gültige Angebot an. */}
+        <div className="max-w-3xl mx-auto mb-8 sm:mb-10">
+          <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-warm-500 mb-3">
+            Unsere Angebote
+          </p>
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+            <WinterOffer variant="strip" className="md:h-full" />
+            <SeasonOffer variant="strip" className="md:h-full" />
           </div>
         </div>
 

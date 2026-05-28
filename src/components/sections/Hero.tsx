@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Container } from "@/components/ui/Container";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { WinterOffer } from "@/components/sections/WinterOffer";
 
 const HERO_SLIDES = [
   { src: "/images/hero/IMG_6811.jpeg", alt: "Bärenstuben – Außenansicht" },
@@ -95,6 +96,16 @@ export function Hero() {
       <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/70 via-black/20 to-black/5 pointer-events-none" />
       <div className="absolute inset-0 z-20 bg-gradient-to-r from-[#723E14]/25 via-transparent to-transparent pointer-events-none" />
       <div className="absolute top-0 inset-x-0 z-20 h-36 bg-gradient-to-b from-black/35 to-transparent pointer-events-none" />
+
+      {/* ── Winterangebot-Overlay (Variante C · Glas-Kapsel) ──────────
+          Ganzjährig sichtbar. Oben mittig (mobil) bzw. oben rechts (Desktop),
+          stört weder Pfeile (Seitenmitte) noch Dots/Zähler (unten). */}
+      <div
+        className="absolute top-20 sm:top-24 left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 z-30 px-4 sm:px-0 w-max max-w-[calc(100%-2rem)] opacity-0"
+        style={{ animation: "heroFadeUp 0.7s 0.9s ease-out forwards" }}
+      >
+        <WinterOffer variant="overlay" />
+      </div>
 
       {/* ── Pfeil links ───────────────────────────────────────────── */}
       <button

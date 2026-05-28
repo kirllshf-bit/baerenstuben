@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Nur lokale Design-Vorlagen, nicht Teil der Website:
+    "design-templates/**",
   ]),
 ]);
 

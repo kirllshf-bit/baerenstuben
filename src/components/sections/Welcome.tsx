@@ -1,5 +1,6 @@
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { WinterOffer } from "@/components/sections/WinterOffer";
 
 export function Welcome() {
   return (
@@ -27,6 +28,11 @@ export function Welcome() {
             oder für eine ausgedehnte Auszeit – wir bieten Ihnen gerne passende
             Langzeitmietoptionen an.
           </p>
+        </div>
+
+        {/* Winterangebot (D2 „Winterruhe") – ganzjährig sichtbar */}
+        <div className="mt-10 sm:mt-12 flex justify-center">
+          <WinterOffer variant="den-min" />
         </div>
       </Container>
     </section>

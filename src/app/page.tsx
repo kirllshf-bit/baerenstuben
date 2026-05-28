@@ -6,7 +6,9 @@ import { Welcome } from "@/components/sections/Welcome";
 import { Location } from "@/components/sections/Location";
 import { Amenities } from "@/components/sections/Amenities";
 import { Gallery } from "@/components/sections/Gallery";
+import { Testimonials } from "@/components/sections/Testimonials";
 import { AvailabilityInquiry } from "@/components/sections/AvailabilityInquiry";
+import { FAQ } from "@/components/sections/FAQ";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -44,7 +46,9 @@ export default function HomePage() {
         <Location />
         <Amenities />
         <Gallery />
+        <Testimonials />
         <AvailabilityInquiry />
+        <FAQ />
       </main>
       <Footer />
     </>

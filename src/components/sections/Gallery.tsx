@@ -5,7 +5,7 @@ import { GallerySlider } from "./GallerySlider";
 const GALLERY_SECTIONS = [
   {
     title: "Apartment",
-    subtitle: "49 m² · Bis zu 4 Personen · Ab 130 € / Nacht",
+    subtitle: "49 m² · Bis zu 4 Personen · Ab 130 € / Nacht · Winterpreis ab 80 €",
     images: [
       "/images/apartments/apartment/IMG_6489.jpeg",
       "/images/apartments/apartment/IMG_6497.jpeg",
@@ -24,7 +24,7 @@ const GALLERY_SECTIONS = [
   },
   {
     title: "Apartment Groß",
-    subtitle: "58 m² · Bis zu 4 Personen · Ab 140 € / Nacht",
+    subtitle: "58 m² · Bis zu 4 Personen · Ab 140 € / Nacht · Winterpreis ab 90 €",
     images: [
       "/images/apartments/apartment-gross/IMG_6635.jpeg",
       "/images/apartments/apartment-gross/IMG_6636.jpeg",
@@ -40,7 +40,7 @@ const GALLERY_SECTIONS = [
   },
   {
     title: "Apartment Premium",
-    subtitle: "60 m² · Bis zu 5 Personen · Ab 170 € / Nacht",
+    subtitle: "60 m² · Bis zu 5 Personen · Ab 170 € / Nacht · Winterpreis ab 110 €",
     images: [
       "/images/apartments/apartment-premium/IMG_6704.jpeg",
       "/images/apartments/apartment-premium/IMG_6708.jpeg",

@@ -40,6 +40,9 @@ yarn-error.log*
 .claude/
 .agents/
 
+# Design-Vorlagen (nur lokale Referenz, nicht Teil der Website)
+/design-templates/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { formatEuro } from "@/lib/utils";
 import { findCombinations, MAX_TOTAL_ADULTS, MAX_TOTAL_GUESTS } from "@/lib/combinations";
 import type { ApartmentCombination } from "@/lib/combinations";
-import { Send, CheckCircle, AlertCircle, Info, Users, Percent } from "lucide-react";
+import { Send, CheckCircle, AlertCircle, Info, Users, Percent, Snowflake } from "lucide-react";
 import Link from "next/link";
 
 interface InquiryFormProps {
@@ -106,6 +106,7 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
           totalAfterDiscount: selectedCombo.totalAfterDiscount,
           discount: selectedCombo.discount,
           discountPercent: selectedCombo.discountPercent,
+          pricingMode: selectedCombo.pricingMode,
           website: honeypot,
         }),
       });
@@ -279,7 +280,15 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
             <div className="flex items-center gap-1.5 mt-1.5 text-accent-green">
               <Percent className="w-3.5 h-3.5" />
               <span className="text-xs font-medium">
-                5 % Langzeit-Rabatt ab 5 Nächten angewendet (−{formatEuro(selectedCombo.discount)})
+                {selectedCombo.discountPercent} % Langzeit-Rabatt ab 5 Nächten angewendet (−{formatEuro(selectedCombo.discount)})
+              </span>
+            </div>
+          )}
+          {selectedCombo.pricingMode === "winter" && (
+            <div className="flex items-center gap-1.5 mt-1.5 text-accent-blue">
+              <Snowflake className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">
+                Winterpreis · 01. Nov – 15. März, ab 5 Nächten
               </span>
             </div>
           )}
@@ -473,7 +482,13 @@ function CombinationCard({
         {combo.discount > 0 && (
           <span className="text-xs text-accent-green font-medium flex items-center gap-0.5">
             <Percent className="w-3 h-3" />
-            −5 %
+            −{combo.discountPercent} %
+          </span>
+        )}
+        {combo.pricingMode === "winter" && (
+          <span className="text-xs text-accent-blue font-medium flex items-center gap-0.5">
+            <Snowflake className="w-3 h-3" />
+            Winterpreis
           </span>
         )}
       </div>
