@@ -56,12 +56,22 @@ const FAQS: FaqEntry[] = [
     a: [
       {
         text:
-          "Ja, auf Wunsch bieten wir ein Frühstück an – täglich von 8:00 bis 10:00 Uhr.",
+          "Ja, auf Wunsch erwartet Sie ein richtiges Frühstücksbuffet – täglich von 8:00 bis 10:00 Uhr.",
       },
       {
         list: [
-          "Erwachsene: 15,00 € pro Person und Tag",
-          "Kinder: 8,50 € pro Person und Tag",
+          "frische Brötchen",
+          "Wurst und Käse in verschiedenen Sorten",
+          "Honig, Marmelade und weitere Aufstriche",
+          "Kaffee und weitere Heißgetränke",
+          "verschiedene Säfte",
+        ],
+      },
+      { subheading: "Preise pro Person und Tag" },
+      {
+        list: [
+          "Erwachsene: 15,00 €",
+          "Kinder: 8,50 €",
         ],
       },
     ],
