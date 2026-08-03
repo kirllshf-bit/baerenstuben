@@ -184,6 +184,33 @@ function isDateBlocked(date: Date, ranges: BlockedDateRange[]): boolean {
   );
 }
 
+/**
+ * Belegte Tage (yyyy-MM-dd) eines einzelnen iCal-Feeds.
+ *
+ * Existiert als testbarer Seam ohne Netzwerkzugriff: DTEND ist laut RFC 5545
+ * exklusiv, der Abreisetag einer Buchung bleibt also frei und ist für neue
+ * Gäste als Anreisetag buchbar (Check-out 11:00, Check-in 14:00).
+ * Siehe scripts/verify-turnover.ts.
+ */
+export function blockedDatesFromICal(icalText: string): string[] {
+  const ranges: BlockedDateRange[] = parseICalEvents(icalText).map((event) => ({
+    start: startOfDay(event.start),
+    end: startOfDay(event.end),
+    unitId: "test",
+  }));
+
+  const dates: string[] = [];
+  for (const range of ranges) {
+    let current = range.start;
+    while (isBefore(current, range.end)) {
+      const dateStr = format(current, "yyyy-MM-dd");
+      if (!dates.includes(dateStr)) dates.push(dateStr);
+      current = addDays(current, 1);
+    }
+  }
+  return dates.sort();
+}
+
 function computeBlockedDates(
   rangesByUnit: Map<string, BlockedDateRange[]>,
   unitIds: string[],

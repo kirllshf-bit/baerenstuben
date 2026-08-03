@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { formatEuro } from "@/lib/utils";
 import { findCombinations, MAX_TOTAL_ADULTS, MAX_TOTAL_GUESTS } from "@/lib/combinations";
+import { MIN_NIGHTS } from "@/lib/apartments";
 import type { ApartmentCombination } from "@/lib/combinations";
 import { Send, CheckCircle, AlertCircle, Info, Users, Percent, Snowflake } from "lucide-react";
 import Link from "next/link";
@@ -38,7 +39,7 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
 
   // Kombinationen berechnen
   const combinations = useMemo(() => {
-    if (!checkIn || !checkOut || nights < 2 || !unitData) return [];
+    if (!checkIn || !checkOut || nights < MIN_NIGHTS || !unitData) return [];
     return findCombinations(adults, children, nights, checkIn, checkOut, unitData);
   }, [adults, children, nights, checkIn, checkOut, unitData]);
 
@@ -65,7 +66,7 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
     const errors: Record<string, string> = {};
 
     if (!checkIn || !checkOut) errors.dates = "Bitte wählen Sie An- und Abreisedatum.";
-    if (nights < 2) errors.dates = "Mindestaufenthalt: 2 Nächte.";
+    if (nights < MIN_NIGHTS) errors.dates = `Mindestaufenthalt: ${MIN_NIGHTS} Nächte.`;
     if (!name.trim() || name.trim().length < 2) errors.name = "Bitte geben Sie Ihren Namen ein.";
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       errors.email = "Bitte geben Sie eine gültige E-Mail-Adresse ein.";
@@ -228,7 +229,7 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
       )}
 
       {/* Verfügbare Kombinationen */}
-      {checkIn && checkOut && nights >= 2 && (
+      {checkIn && checkOut && nights >= MIN_NIGHTS && (
         <div>
           <label className="block text-sm font-medium text-warm-700 mb-2">
             Verfügbare Unterkünfte

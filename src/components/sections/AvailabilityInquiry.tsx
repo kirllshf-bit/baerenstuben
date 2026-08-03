@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { AvailabilityCalendar } from "@/components/calendar/AvailabilityCalendar";
+import type { DateSelectionMode } from "@/components/calendar/AvailabilityCalendar";
 import { InquiryForm } from "@/components/forms/InquiryForm";
 import { useUnitsAvailability } from "@/hooks/useUnitsAvailability";
 import { WinterOffer } from "@/components/sections/WinterOffer";
@@ -16,43 +17,20 @@ export function AvailabilityInquiry() {
 
   const { data, loading, error, refetch } = useUnitsAvailability();
 
-  // Kalender zeigt nur Tage als blockiert, an denen ALLE Units belegt sind
-  const allBlockedDates = useMemo(() => {
-    if (!data?.units) return new Set<string>();
-
-    const unitIds = Object.keys(data.units);
-    if (unitIds.length === 0) return new Set<string>();
-
-    // Für jede Unit ein Set der blockierten Tage
-    const unitSets = unitIds.map(
-      (id) => new Set(data.units[id].blockedDates)
-    );
-
-    // Schnittmenge: nur Tage die in ALLEN Units blockiert sind
-    const allDates = unitSets[0];
-    const result = new Set<string>();
-    for (const date of allDates) {
-      if (unitSets.every((s) => s.has(date))) {
-        result.add(date);
-      }
-    }
-    return result;
-  }, [data]);
-
-  const handleSelectDate = (dateStr: string) => {
-    if (!checkIn || checkOut) {
+  // Die Auswahl-Logik (Mindestaufenthalt, belegte Nächte, Neustart der Auswahl)
+  // liegt vollständig im Kalender – hier wird nur der State gesetzt.
+  const handleSelectDate = (dateStr: string, mode: DateSelectionMode) => {
+    if (mode === "check-in") {
       setCheckIn(dateStr);
       setCheckOut(null);
-    } else {
-      const checkInDate = new Date(checkIn);
-      const selectedDate = new Date(dateStr);
-      if (selectedDate > checkInDate) {
-        setCheckOut(dateStr);
-      } else {
-        setCheckIn(dateStr);
-        setCheckOut(null);
-      }
+      return;
     }
+    setCheckOut(dateStr);
+  };
+
+  const handleResetDates = () => {
+    setCheckIn(null);
+    setCheckOut(null);
   };
 
   return (
@@ -108,10 +86,11 @@ export function AvailabilityInquiry() {
           {/* Calendar (3/5) */}
           <div className="lg:col-span-3 bg-white rounded-[var(--radius-card)] shadow-[var(--shadow-card)] p-4 sm:p-5 md:p-8">
             <AvailabilityCalendar
-              blockedDates={allBlockedDates}
+              units={data?.units || null}
               checkIn={checkIn}
               checkOut={checkOut}
               onSelectDate={handleSelectDate}
+              onReset={handleResetDates}
               loading={loading}
             />
           </div>

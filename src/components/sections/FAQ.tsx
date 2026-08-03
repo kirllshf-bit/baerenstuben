@@ -16,6 +16,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { CHECK_IN_FROM, CHECK_OUT_UNTIL } from "@/lib/apartments";
 import { cn } from "@/lib/utils";
 
 /**
@@ -46,6 +47,21 @@ const FAQS: FaqEntry[] = [
           "Salz, Pfeffer & Zucker",
           "verschiedene Küchenutensilien",
           "weitere kleine Hygiene- und Alltagsartikel",
+        ],
+      },
+    ],
+  },
+  {
+    q: "Bieten Sie ein Frühstück an?",
+    a: [
+      {
+        text:
+          "Ja, auf Wunsch bieten wir ein Frühstück an – täglich von 8:00 bis 10:00 Uhr.",
+      },
+      {
+        list: [
+          "Erwachsene: 15,00 € pro Person und Tag",
+          "Kinder: 8,50 € pro Person und Tag",
         ],
       },
     ],
@@ -94,14 +110,14 @@ const FAQS: FaqEntry[] = [
     ],
   },
   {
-    q: "Wie flexibel sind die Ankunftszeiten?",
+    q: "Wann sind Check-in und Check-out?",
     a: [
       {
-        text:
-          "Der Check-in ist ab 12:00 Uhr möglich. Danach können Sie flexibel anreisen – ob nachmittags oder spät abends.",
+        text: `Check-in ab ${CHECK_IN_FROM}, Check-out bis ${CHECK_OUT_UNTIL}.`,
       },
       {
         text:
+          `Ab ${CHECK_IN_FROM} können Sie flexibel anreisen – ob nachmittags oder spät abends. ` +
           "Für späte Anreisen stehen Schlüsselboxen zur Verfügung. Den persönlichen Code erhalten Sie vor der Anreise.",
       },
     ],

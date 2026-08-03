@@ -48,6 +48,21 @@ export function getApartmentConfig(type: ApartmentType): ApartmentConfig {
   return config;
 }
 
+/**
+ * Mindestaufenthalt in Nächten. Einzige Quelle für Kalender, Anfrageformular,
+ * Zod-Validierung und API-Route – nicht an anderer Stelle hartkodieren.
+ */
+export const MIN_NIGHTS = 2;
+
+/**
+ * Check-in-/Check-out-Zeiten als Anzeigetext (FAQ, Kalender-Fußnote).
+ * Weil der Vorgänger bis {CHECK_OUT_UNTIL} abgereist ist, kann am selben Tag
+ * ab {CHECK_IN_FROM} bereits der nächste Gast anreisen – der Abreisetag einer
+ * Buchung wird deshalb bewusst NICHT als belegt behandelt (siehe lib/ical.ts).
+ */
+export const CHECK_IN_FROM = "14:00 Uhr";
+export const CHECK_OUT_UNTIL = "11:00 Uhr";
+
 export const DISCOUNT_MIN_NIGHTS = 5;
 export const DISCOUNT_PERCENT = 5;
 

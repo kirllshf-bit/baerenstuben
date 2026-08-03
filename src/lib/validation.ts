@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MIN_NIGHTS } from "./apartments";
 
 export const inquirySchema = z
   .object({
@@ -22,9 +23,9 @@ export const inquirySchema = z
       const checkOut = new Date(data.checkOut);
       const diffMs = checkOut.getTime() - checkIn.getTime();
       const diffDays = diffMs / (1000 * 60 * 60 * 24);
-      return diffDays >= 2;
+      return diffDays >= MIN_NIGHTS;
     },
-    { message: "Mindestaufenthalt: 2 Nächte.", path: ["checkOut"] }
+    { message: `Mindestaufenthalt: ${MIN_NIGHTS} Nächte.`, path: ["checkOut"] }
   )
   .refine(
     (data) => data.childAges.length === data.children,

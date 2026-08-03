@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { MIN_NIGHTS } from "@/lib/apartments";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,7 @@ function validate(body: InquiryBody): string | null {
   if (!body.name?.trim() || body.name.trim().length < 2) return "Name fehlt.";
   if (!body.email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) return "Ungültige E-Mail.";
   if (!body.checkIn || !body.checkOut) return "Zeitraum fehlt.";
-  if (body.nights < 2) return "Mindestaufenthalt: 2 Nächte.";
+  if (body.nights < MIN_NIGHTS) return `Mindestaufenthalt: ${MIN_NIGHTS} Nächte.`;
   if (!body.displayLabel) return "Unterkunftsauswahl fehlt.";
   // Honeypot
   if (body.website && body.website.trim().length > 0) return "SPAM";

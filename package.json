@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "generate-availability": "tsx scripts/generate-availability.ts",
+    "verify-turnover": "tsx scripts/verify-turnover.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
