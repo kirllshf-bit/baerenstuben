@@ -9,7 +9,7 @@ import { formatEuro } from "@/lib/utils";
 import { findCombinations, MAX_TOTAL_ADULTS, MAX_TOTAL_GUESTS } from "@/lib/combinations";
 import { MIN_NIGHTS } from "@/lib/apartments";
 import type { ApartmentCombination } from "@/lib/combinations";
-import { Send, CheckCircle, AlertCircle, Info, Users, Percent, Snowflake } from "lucide-react";
+import { Send, CheckCircle, AlertCircle, Info, Users, Percent, Snowflake, CalendarRange } from "lucide-react";
 import Link from "next/link";
 
 interface InquiryFormProps {
@@ -108,6 +108,9 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
           discount: selectedCombo.discount,
           discountPercent: selectedCombo.discountPercent,
           pricingMode: selectedCombo.pricingMode,
+          // Nachtgenaue Saison-Aufschlüsselung (nur bei mehreren Preisstufen relevant),
+          // damit die Owner-Mail den Gesamtpreis nachvollziehbar macht.
+          rateSegments: selectedCombo.rateSegments,
           website: honeypot,
         }),
       });
@@ -289,7 +292,16 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
             <div className="flex items-center gap-1.5 mt-1.5 text-accent-blue">
               <Snowflake className="w-3.5 h-3.5" />
               <span className="text-xs font-medium">
-                Winterpreis · 01. Nov – 15. März, ab 5 Nächten
+                Winterpreis · 01. Nov – 15. März (außer 21. Dez – 03. Jan), ab 5 Nächten
+              </span>
+            </div>
+          )}
+          {selectedCombo.isMixedSeason && (
+            <div className="flex items-center gap-1.5 mt-1.5 text-warm-700">
+              <CalendarRange className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">
+                Ihr Aufenthalt umfasst mehrere Saisonzeiträume – jede Nacht wird
+                zum jeweils gültigen Preis berechnet.
               </span>
             </div>
           )}
@@ -297,6 +309,7 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
             {selectedCombo.displayLabel}
             {selectedCombo.units.length === 1 && ` (${selectedCombo.units[0].size} m²)`}
             {": "}
+            {selectedCombo.isMixedSeason && "Ø "}
             {formatEuro(selectedCombo.units.reduce((s, u) => s + u.price.totalPerNight, 0))}/Nacht
             {selectedCombo.units.some((u) => u.price.extraPersonFee > 0) && " (inkl. Aufpreis)"}
           </div>

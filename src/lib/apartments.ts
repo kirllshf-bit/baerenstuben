@@ -1,4 +1,11 @@
-import type { ApartmentConfig, ApartmentType, ApartmentPriceCalculation, PricingMode } from "@/types/apartment";
+import type {
+  ApartmentConfig,
+  ApartmentType,
+  ApartmentPriceCalculation,
+  NightlyRateSegment,
+  PricingMode,
+} from "@/types/apartment";
+import { isPeakHolidayNight, seasonRate } from "./seasons";
 
 export const APARTMENTS: ApartmentConfig[] = [
   {
@@ -77,7 +84,9 @@ export function normalDiscountPercent(nights: number): number {
 
 /**
  * Prüft, ob eine einzelne Übernachtung in den Winterzeitraum fällt.
- * Winterfenster: 01.11. – 14.03. (jahresübergreifend, jährlich wiederkehrend).
+ * Winterfenster: 01.11. – 14.03. (jahresübergreifend, jährlich wiederkehrend),
+ * ABER ohne 21.12. – 03.01.: über Weihnachten/Silvester ist Hochsaison, dort
+ * gilt der reguläre Saisonpreis statt des Winterangebots.
  * Die Nacht 14.→15.03. ist die letzte Winter-Nacht; eine Abreise am 15.03.
  * ist somit erlaubt (Abreisetag wird nicht übernachtet).
  * Verwendet UTC (wie isUnitAvailable in combinations.ts), da Datums-Strings
@@ -86,6 +95,7 @@ export function normalDiscountPercent(nights: number): number {
 function isWinterNight(date: Date): boolean {
   const month = date.getUTCMonth() + 1; // 1..12
   const day = date.getUTCDate();
+  if (isPeakHolidayNight(month, day)) return false; // 21.12.–03.01. ausgenommen
   if (month === 11 || month === 12) return true; // Nov, Dez
   if (month === 1 || month === 2) return true; // Jan, Feb
   if (month === 3 && day <= 14) return true; // Mär 1.–14. (Nacht 14→15 = letzte Winternacht)
@@ -113,24 +123,78 @@ export function isWinterStay(checkIn: string, checkOut: string, nights: number):
   return true;
 }
 
+export const MAIN_SEASON_LABEL = "Hauptsaison";
+export const WINTER_SEASON_LABEL = "Winterpreis";
+
+/**
+ * Zerlegt einen Aufenthalt in Preisblöcke: jede Nacht wird mit dem Satz ihres
+ * Saisonzeitraums bewertet (Fallback: Basispreis), aufeinanderfolgende Nächte
+ * mit gleichem Satz werden zusammengefasst.
+ *
+ * @param checkIn Anreisedatum "yyyy-MM-dd"; ohne Angabe wird durchgängig
+ *                mit dem Basispreis gerechnet (Anzeige-Fälle ohne Zeitraum).
+ */
+export function nightlyRateSegments(
+  type: ApartmentType,
+  nights: number,
+  checkIn?: string
+): NightlyRateSegment[] {
+  const config = getApartmentConfig(type);
+  if (nights <= 0) return [];
+  if (!checkIn) {
+    return [{ rate: config.basePrice, nights, label: MAIN_SEASON_LABEL }];
+  }
+
+  const segments: NightlyRateSegment[] = [];
+  const current = new Date(checkIn);
+
+  for (let i = 0; i < nights; i++) {
+    const dateStr = current.toISOString().split("T")[0];
+    const rate = seasonRate(type, dateStr) ?? config.basePrice;
+    const last = segments[segments.length - 1];
+    if (last && last.rate === rate) {
+      last.nights += 1;
+    } else {
+      segments.push({ rate, nights: 1, label: MAIN_SEASON_LABEL });
+    }
+    current.setUTCDate(current.getUTCDate() + 1);
+  }
+
+  return segments;
+}
+
+/**
+ * @param isWinter true, wenn der gesamte Aufenthalt für das Winterangebot
+ *                 qualifiziert (siehe isWinterStay) – überschreibt alle Saisonsätze.
+ * @param checkIn  Anreisedatum "yyyy-MM-dd" für die nachtgenaue Saisonberechnung.
+ *                 Ohne Angabe gilt durchgängig der Basispreis.
+ */
 export function calculatePrice(
   type: ApartmentType,
   adults: number,
   children: number,
   nights: number,
-  isWinter = false
+  isWinter = false,
+  checkIn?: string
 ): ApartmentPriceCalculation {
   const config = getApartmentConfig(type);
   const totalGuests = adults + children;
   const extraGuests = Math.max(0, totalGuests - config.includedGuests);
   const extraPersonFee = extraGuests * config.extraPersonPrice;
 
-  // Winterpreis ersetzt den Basispreis; der Personen-Aufpreis gilt weiterhin.
-  const effectiveBase = isWinter ? config.winterPrice : config.basePrice;
   const pricingMode: PricingMode = isWinter ? "winter" : "normal";
 
-  const totalPerNight = effectiveBase + extraPersonFee;
-  const totalPrice = totalPerNight * nights;
+  // Winterpreis ersetzt alle Saisonsätze; der Personen-Aufpreis gilt weiterhin.
+  const segments: NightlyRateSegment[] = isWinter
+    ? [{ rate: config.winterPrice, nights, label: WINTER_SEASON_LABEL }]
+    : nightlyRateSegments(type, nights, checkIn);
+
+  // Nachtgenaue Summe – NICHT aus dem gerundeten Durchschnitt ableiten.
+  const accommodationTotal = segments.reduce((s, seg) => s + seg.rate * seg.nights, 0);
+  const totalPrice = accommodationTotal + extraPersonFee * nights;
+
+  // Nur für die Anzeige: Durchschnittssatz über alle Nächte.
+  const basePrice = nights > 0 ? Math.round(accommodationTotal / nights) : 0;
 
   // Im Winter kein zusätzlicher Prozent-Rabatt (Winterpreis IST der Rabatt).
   const discountPercent = isWinter ? 0 : normalDiscountPercent(nights);
@@ -138,15 +202,17 @@ export function calculatePrice(
   const totalAfterDiscount = totalPrice - discount;
 
   return {
-    basePrice: effectiveBase,
+    basePrice,
     extraPersonFee,
-    totalPerNight,
+    totalPerNight: basePrice + extraPersonFee,
     nights,
     totalPrice,
     discount,
     discountPercent,
     totalAfterDiscount,
     pricingMode,
+    segments,
+    isMixedSeason: segments.length > 1,
   };
 }
 

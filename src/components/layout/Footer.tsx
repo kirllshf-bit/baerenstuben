@@ -97,10 +97,11 @@ export function Footer() {
             <p id="angebot-winter" className="scroll-mt-28">
               <sup className="text-secondary font-semibold">1</sup>{" "}
               <span className="font-semibold text-white/75">Winterangebot:</span> gültig vom 01.11.
-              bis 15.03. (jährlich), ab 5&nbsp;Nächten. Preis pro Nacht je Wohnungskategorie:
-              Apartment 80&nbsp;€, Apartment Groß 90&nbsp;€, Apartment Premium 110&nbsp;€.
-              Der Winterpreis gilt nur, wenn der gesamte Aufenthalt in diesen Zeitraum fällt;
-              ein zusätzlicher Rabatt wird nicht gewährt. Aufpreis für weitere Personen unverändert.
+              bis 15.03. (jährlich), ausgenommen 21.12.–03.01., ab 5&nbsp;Nächten. Preis pro Nacht
+              je Wohnungskategorie: Apartment 80&nbsp;€, Apartment Groß 90&nbsp;€,
+              Apartment Premium 110&nbsp;€. Der Winterpreis gilt nur, wenn der gesamte Aufenthalt
+              in diesen Zeitraum fällt; ein zusätzlicher Rabatt wird nicht gewährt.
+              Aufpreis für weitere Personen unverändert.
             </p>
             <p id="angebot-saison" className="scroll-mt-28">
               <sup className="text-secondary font-semibold">2</sup>{" "}
@@ -108,6 +109,20 @@ export function Footer() {
               auf den Gesamtpreis ab 5&nbsp;Nächten, außerhalb des Winterzeitraums.
               Nicht mit dem Winterangebot kombinierbar. Mindestaufenthalt 2&nbsp;Nächte.
               Alle Preise sind unverbindliche Richtwerte; maßgeblich ist unsere Bestätigung per E-Mail.
+            </p>
+            <p id="saisonpreise" className="scroll-mt-28 sm:col-span-2">
+              <sup className="text-secondary font-semibold">3</sup>{" "}
+              <span className="font-semibold text-white/75">Saisonpreise (pro Nacht, Saison 2026/27):</span>{" "}
+              Angegeben jeweils Apartment / Apartment&nbsp;Groß / Apartment&nbsp;Premium.
+              07.09.–04.10.: 115&nbsp;/&nbsp;115&nbsp;/&nbsp;145&nbsp;€ ·
+              05.10.–31.10.: 130&nbsp;/&nbsp;140&nbsp;/&nbsp;170&nbsp;€ ·
+              01.11.–20.12.: 95&nbsp;/&nbsp;105&nbsp;/&nbsp;135&nbsp;€ ·
+              21.12.–03.01.: 140&nbsp;/&nbsp;150&nbsp;/&nbsp;180&nbsp;€ ·
+              04.01.–14.03.: 95&nbsp;/&nbsp;105&nbsp;/&nbsp;135&nbsp;€.
+              Außerhalb dieser Zeiträume gelten 130&nbsp;/&nbsp;140&nbsp;/&nbsp;170&nbsp;€.
+              Umfasst ein Aufenthalt mehrere Zeiträume, wird jede Nacht zum jeweils
+              gültigen Preis berechnet. Das genannte Enddatum ist die letzte
+              Übernachtung des Zeitraums.
             </p>
           </div>
         </div>

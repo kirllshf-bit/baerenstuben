@@ -38,6 +38,8 @@ interface InquiryBody {
   discountPercent: number;
   /** "winter" wenn Winterpreis angewendet wurde, sonst "normal" (optional, abwärtskompatibel) */
   pricingMode?: "normal" | "winter";
+  /** Nachtgenaue Saison-Aufschlüsselung über alle gebuchten Wohnungen (optional). */
+  rateSegments?: { rate: number; nights: number }[];
   /** Honeypot-Feld: muss leer sein */
   website?: string;
 }
@@ -57,6 +59,17 @@ function formatPrice(cents: number): string {
   return `${cents.toLocaleString("de-DE")} €`;
 }
 
+/**
+ * Aufschlüsselung "3 Nächte × 130 € + 4 Nächte × 95 €" – nur wenn der
+ * Aufenthalt tatsächlich mehrere Preisstufen umfasst.
+ */
+function formatRateSegments(d: InquiryBody): string {
+  const segments = d.rateSegments;
+  if (!segments || segments.length < 2) return "";
+  const parts = segments.map((s) => `${s.nights} × ${formatPrice(s.rate)}`);
+  return `\nSaison-Aufschlüsselung (Übernachtung, alle Wohnungen): ${parts.join(" + ")}`;
+}
+
 function buildOwnerEmail(d: InquiryBody): string {
   const childAgesStr = d.childAges && d.childAges.length > 0
     ? d.childAges.map((a) => `${a} Jahre`).join(", ")
@@ -65,7 +78,7 @@ function buildOwnerEmail(d: InquiryBody): string {
   const priceLine = d.discount > 0
     ? `${formatPrice(d.totalAfterDiscount)} (${formatPrice(d.totalPrice)} abzgl. ${d.discountPercent}% Rabatt)`
     : d.pricingMode === "winter"
-      ? `${formatPrice(d.totalPrice)} (Winterpreis 01.11.–15.03.)`
+      ? `${formatPrice(d.totalPrice)} (Winterpreis 01.11.–15.03., außer 21.12.–03.01.)`
       : formatPrice(d.totalPrice);
 
   return `Neue Anfrage über bärenstuben.de
@@ -78,7 +91,7 @@ Nächte: ${d.nights}
 Erwachsene: ${d.adults}
 Kinder: ${d.children}${d.children > 0 ? ` (${childAgesStr})` : ""}
 
-Geschätzter Preis: ${priceLine}
+Geschätzter Preis: ${priceLine}${formatRateSegments(d)}
 
 ---
 
@@ -95,8 +108,12 @@ function buildGuestEmail(d: InquiryBody): string {
   const priceLine = d.discount > 0
     ? `${formatPrice(d.totalAfterDiscount)} (inkl. ${d.discountPercent}% Langzeit-Rabatt)`
     : d.pricingMode === "winter"
-      ? `${formatPrice(d.totalPrice)} (Winterpreis 01.11.–15.03.)`
+      ? `${formatPrice(d.totalPrice)} (Winterpreis 01.11.–15.03., außer 21.12.–03.01.)`
       : formatPrice(d.totalPrice);
+
+  const seasonNote = d.rateSegments && d.rateSegments.length > 1
+    ? "\n\nHinweis: Ihr Aufenthalt umfasst mehrere Saisonzeiträume – jede Nacht wurde zum jeweils gültigen Preis berechnet."
+    : "";
 
   return `Liebe/r ${d.name.trim()},
 
@@ -109,7 +126,7 @@ Anreise: ${d.checkIn}
 Abreise: ${d.checkOut}
 Nächte: ${d.nights}
 Personen: ${d.adults} Erwachsene${d.children > 0 ? `, ${d.children} Kinder` : ""}
-Geschätzter Preis: ${priceLine}
+Geschätzter Preis: ${priceLine}${seasonNote}
 
 Wir prüfen die Verfügbarkeit und melden uns schnellstmöglich bei Ihnen – in der Regel innerhalb von 24 Stunden.
 

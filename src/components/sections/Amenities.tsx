@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { cn } from "@/lib/utils";
 import { APARTMENTS } from "@/lib/apartments";
+import { seasonPriceRange } from "@/lib/seasons";
 import { formatEuro } from "@/lib/utils";
 import { OfferFootnote } from "@/components/ui/OfferFootnote";
 import {
@@ -94,6 +95,10 @@ export function Amenities() {
   const [activeTab, setActiveTab] = useState<ApartmentType>("apartment");
   const config = APARTMENTS.find((a) => a.type === activeTab)!;
   const specific = APARTMENT_SPECIFIC[activeTab];
+  // Spanne über alle Saisonzeiträume; fällt auf einen einzelnen Preis zurück,
+  // sobald keine Saisonpreise mehr hinterlegt sind.
+  const { min: minRate, max: maxRate } = seasonPriceRange(activeTab, config.basePrice);
+  const hasPriceRange = minRate !== maxRate;
 
   return (
     <section id="ausstattung" className="py-(--spacing-section-sm) md:py-(--spacing-section)">
@@ -157,10 +162,16 @@ export function Amenities() {
             <div className="bg-warm-50 border border-warm-200 rounded-[var(--radius-card)] p-5 md:p-6">
               <div className="flex items-baseline gap-2 mb-2">
                 <span className="font-serif text-3xl font-medium text-primary">
-                  {formatEuro(config.basePrice)}
+                  {hasPriceRange ? `${minRate} – ${formatEuro(maxRate)}` : formatEuro(config.basePrice)}
                 </span>
                 <span className="text-warm-500 text-sm">/ Nacht</span>
               </div>
+              {hasPriceRange && (
+                <p className="text-warm-400 text-xs mb-2">
+                  Je nach Reisezeitraum · exakter Preis im Anfrageformular
+                  <OfferFootnote offer="saisonpreise" />
+                </p>
+              )}
               <p className="text-warm-500 text-sm">
                 Inklusive {config.includedGuests} Personen · Jede weitere Person +{formatEuro(config.extraPersonPrice)}
               </p>
@@ -171,7 +182,7 @@ export function Amenities() {
                 <Snowflake className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.75} />
                 <span>
                   Winterpreis ab <span className="font-semibold text-primary-dark">{formatEuro(config.winterPrice)}</span> / Nacht
-                  <span className="text-warm-400"> · 01.11.–15.03., ab 5 Nächten</span>
+                  <span className="text-warm-400"> · 01.11.–15.03. außer 21.12.–03.01., ab 5 Nächten</span>
                   <OfferFootnote offer="winter" />
                 </span>
               </div>

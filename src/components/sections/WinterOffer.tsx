@@ -200,7 +200,7 @@ export function WinterOffer({ variant = "card", className }: WinterOfferProps) {
           <Snowflake className="w-4 h-4 text-accent-blue" strokeWidth={1.75} />
         </span>
         <span className="text-sm text-warm-700">
-          <b className="font-semibold text-primary-dark">Winterpreis</b> · ab 5 Nächten · 01.11.–15.03.
+          <b className="font-semibold text-primary-dark">Winterpreis</b> · ab 5 Nächten · 01.11.–15.03. (außer 21.12.–03.01.)
         </span>
         <span className="whitespace-nowrap rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-white">
           80 € / Nacht
@@ -350,7 +350,9 @@ export function WinterOffer({ variant = "card", className }: WinterOfferProps) {
           Ab 5 Nächten nur <span className="font-semibold text-primary">80 € pro Nacht</span>
           <OfferFootnote offer="winter" />
         </div>
-        <p className="mt-1.5 text-[13px] text-warm-500">Gültig vom 01.11. bis 15.03.</p>
+        <p className="mt-1.5 text-[13px] text-warm-500">
+          Gültig vom 01.11. bis 15.03. · ausgenommen 21.12.–03.01.
+        </p>
       </div>
     </div>
   );

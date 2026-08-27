@@ -1,5 +1,10 @@
 import { APARTMENTS, calculatePrice, isWinterStay, normalDiscountPercent } from "./apartments";
-import type { ApartmentType, ApartmentPriceCalculation, PricingMode } from "@/types/apartment";
+import type {
+  ApartmentType,
+  ApartmentPriceCalculation,
+  NightlyRateSegment,
+  PricingMode,
+} from "@/types/apartment";
 
 /** Eine einzelne Einheit in einer Kombination */
 export interface UnitAllocation {
@@ -24,6 +29,26 @@ export interface ApartmentCombination {
   nights: number;
   /** "winter" wenn der Aufenthalt vollständig im Winterzeitraum liegt (≥5 Nächte), sonst "normal". */
   pricingMode: PricingMode;
+  /** true, wenn der Aufenthalt mehrere Saison-Preisstufen umfasst (nachtgenau berechnet). */
+  isMixedSeason: boolean;
+  /**
+   * Nachtgenaue Aufschlüsselung für die GESAMTE Kombination: `rate` ist die
+   * Summe der Nachtsätze aller enthaltenen Wohnungen (ohne Personen-Aufpreis).
+   */
+  rateSegments: NightlyRateSegment[];
+}
+
+/**
+ * Summiert die Segmente aller Units elementweise. Alle Units eines Aufenthalts
+ * durchlaufen dieselben Zeiträume, die Segment-Strukturen sind daher deckungsgleich.
+ */
+function mergeRateSegments(units: UnitAllocation[]): NightlyRateSegment[] {
+  const first = units[0]?.price.segments;
+  if (!first) return [];
+  return first.map((seg, i) => ({
+    ...seg,
+    rate: units.reduce((sum, u) => sum + (u.price.segments[i]?.rate ?? 0), 0),
+  }));
 }
 
 /**
@@ -206,7 +231,7 @@ export function findCombinations(
 
     // Preis berechnen
     const unitAllocations: UnitAllocation[] = selectedUnits.map((unit, i) => {
-      const price = calculatePrice(unit.type, allocation[i].adults, allocation[i].children, nights, winter);
+      const price = calculatePrice(unit.type, allocation[i].adults, allocation[i].children, nights, winter, checkIn);
       return {
         unitId: unit.unitId,
         apartmentType: unit.type,
@@ -233,6 +258,9 @@ export function findCombinations(
       discountPercent,
       nights,
       pricingMode: winter ? "winter" : "normal",
+      // Alle Units eines Aufenthalts durchlaufen dieselben Zeiträume – eine reicht.
+      isMixedSeason: unitAllocations[0]?.price.isMixedSeason ?? false,
+      rateSegments: mergeRateSegments(unitAllocations),
     });
   }
 

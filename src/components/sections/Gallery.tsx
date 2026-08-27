@@ -1,11 +1,25 @@
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { GallerySlider } from "./GallerySlider";
+import { getApartmentConfig } from "@/lib/apartments";
+import { seasonPriceRange } from "@/lib/seasons";
+import type { ApartmentType } from "@/types/apartment";
+
+/**
+ * Untertitel der Form „49 m² · Bis zu 4 Personen · Ab 95 € / Nacht · Winterpreis ab 80 €".
+ * Der „Ab"-Preis wird aus den Saisonpreisen abgeleitet, damit er nicht veraltet,
+ * wenn SEASON_PERIODS gepflegt wird.
+ */
+function buildSubtitle(type: ApartmentType): string {
+  const config = getApartmentConfig(type);
+  const { min } = seasonPriceRange(type, config.basePrice);
+  return `${config.size} m² · Bis zu ${config.maxGuests} Personen · Ab ${min} € / Nacht · Winterpreis ab ${config.winterPrice} €`;
+}
 
 const GALLERY_SECTIONS = [
   {
     title: "Apartment",
-    subtitle: "49 m² · Bis zu 4 Personen · Ab 130 € / Nacht · Winterpreis ab 80 €",
+    type: "apartment" as ApartmentType,
     images: [
       "/images/apartments/apartment/IMG_6489.jpeg",
       "/images/apartments/apartment/IMG_6497.jpeg",
@@ -24,7 +38,7 @@ const GALLERY_SECTIONS = [
   },
   {
     title: "Apartment Groß",
-    subtitle: "58 m² · Bis zu 4 Personen · Ab 140 € / Nacht · Winterpreis ab 90 €",
+    type: "apartment-gross" as ApartmentType,
     images: [
       "/images/apartments/apartment-gross/IMG_6635.jpeg",
       "/images/apartments/apartment-gross/IMG_6636.jpeg",
@@ -40,7 +54,7 @@ const GALLERY_SECTIONS = [
   },
   {
     title: "Apartment Premium",
-    subtitle: "60 m² · Bis zu 5 Personen · Ab 170 € / Nacht · Winterpreis ab 110 €",
+    type: "apartment-premium" as ApartmentType,
     images: [
       "/images/apartments/apartment-premium/IMG_6704.jpeg",
       "/images/apartments/apartment-premium/IMG_6708.jpeg",
@@ -66,7 +80,7 @@ export function Gallery() {
             <GallerySlider
               key={section.title}
               title={section.title}
-              subtitle={section.subtitle}
+              subtitle={buildSubtitle(section.type)}
               images={section.images}
             />
           ))}
