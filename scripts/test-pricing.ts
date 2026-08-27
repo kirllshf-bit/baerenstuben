@@ -260,5 +260,64 @@ console.log("\n=== findCombinations() (keine Belegung) ===");
   }
 }
 
+console.log("\n=== Direktbucher-Vorteil (portalTotal / savings) ===");
+{
+  // Winter 7N: direkt 7×80=560, Portal 7×140=980 → 420 gespart
+  const p = priceFor("2026-11-10", "2026-11-17", 2, 0);
+  check("Winter portalTotal=980", p.portalTotal, 980);
+  check("Winter savings=420", p.savings, 420);
+}
+{
+  // Nebensaison 2N: direkt 190, Portal 280 → 90 gespart
+  const p = priceFor("2026-11-10", "2026-11-12", 2, 0);
+  check("Nebensaison portalTotal=280", p.portalTotal, 280);
+  check("Nebensaison savings=90", p.savings, 90);
+}
+{
+  // Silvester 5N: direkt 700−5%=665, Portal 700 → nur der Rabatt bleibt als Vorteil
+  const p = priceFor("2026-12-27", "2027-01-01", 2, 0);
+  check("Silvester portalTotal=700", p.portalTotal, 700);
+  check("Silvester savings=35 (nur Langzeitrabatt)", p.savings, 35);
+}
+{
+  // Silvester 2N ohne Rabatt: direkt 280 = Portal 280 → kein Vorteil, kein Badge
+  const p = priceFor("2026-12-27", "2026-12-29", 2, 0);
+  check("Silvester 2N savings=0", p.savings, 0);
+}
+{
+  // Personen-Aufpreis steht auf beiden Seiten → Ersparnis bleibt die Nachtdifferenz
+  const ohne = priceFor("2026-11-10", "2026-11-12", 2, 0);
+  const mit = priceFor("2026-11-10", "2026-11-12", 3, 0);
+  check("Aufpreis verändert savings nicht", mit.savings, ohne.savings);
+}
+{
+  // Premium Nebensaison 2N: direkt 270, Portal 360 → 90
+  const p = priceFor("2026-11-10", "2026-11-12", 4, 0, "apartment-premium");
+  check("Premium portalTotal=360", p.portalTotal, 360);
+  check("Premium savings=90", p.savings, 90);
+}
+{
+  // savings ist nie negativ
+  const all = [
+    priceFor("2026-12-27", "2026-12-29", 2, 0),
+    priceFor("2027-07-01", "2027-07-03", 2, 0),
+    priceFor("2026-09-10", "2026-09-12", 2, 0),
+  ];
+  check("savings nie negativ", all.every((p) => p.savings >= 0), true);
+}
+{
+  // Kombination: portalTotal und savings summieren über alle Units
+  const checkIn = "2026-11-10";
+  const checkOut = "2026-11-17"; // 7N Winter
+  const combos = findCombinations(6, 0, nights(checkIn, checkOut), checkIn, checkOut, {});
+  const any = combos[0];
+  if (any) {
+    const sumPortal = any.units.reduce((s, u) => s + u.price.portalTotal, 0);
+    check("Combo portalTotal===Summe Units", any.portalTotal, sumPortal);
+    check("Combo savings===portalTotal−totalAfterDiscount", any.savings, any.portalTotal - any.totalAfterDiscount);
+    check("Combo savings > 0", any.savings > 0, true);
+  }
+}
+
 console.log(`\n=== Ergebnis: ${passed} bestanden, ${failed} fehlgeschlagen ===\n`);
 process.exit(failed > 0 ? 1 : 0);

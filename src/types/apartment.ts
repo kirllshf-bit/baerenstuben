@@ -11,6 +11,13 @@ export interface ApartmentConfig {
   basePrice: number;
   /** Preis/Nacht im Winterzeitraum (01.11.–15.03. außer 21.12.–03.01., ab 5 Nächten). Ersetzt basePrice. */
   winterPrice: number;
+  /**
+   * Preis/Nacht auf Buchungsportalen (Booking.com, Airbnb) – dort liegt der
+   * Preis wegen der Portal-Provision höher. Dient AUSSCHLIESSLICH als
+   * Vergleichspreis für den Direktbucher-Vorteil, nie als Berechnungsgrundlage.
+   * Muss dem tatsächlich auf den Portalen geforderten Preis entsprechen.
+   */
+  portalPrice: number;
   includedGuests: number;
   maxGuests: number;
   maxAdults: number;
@@ -46,4 +53,8 @@ export interface ApartmentPriceCalculation {
   segments: NightlyRateSegment[];
   /** true, wenn der Aufenthalt mehrere Preisstufen umfasst (segments.length > 1) */
   isMixedSeason: boolean;
+  /** Was derselbe Aufenthalt auf Buchungsportalen kosten würde (Vergleichspreis). */
+  portalTotal: number;
+  /** portalTotal − totalAfterDiscount. Nie negativ; 0 = kein Direktbucher-Vorteil. */
+  savings: number;
 }

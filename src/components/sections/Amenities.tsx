@@ -8,6 +8,7 @@ import { APARTMENTS } from "@/lib/apartments";
 import { seasonPriceRange } from "@/lib/seasons";
 import { formatEuro } from "@/lib/utils";
 import { OfferFootnote } from "@/components/ui/OfferFootnote";
+import { StrikePrice, SavingsBadge } from "@/components/ui/PriceSavings";
 import {
   Maximize2, Users, BedDouble, Sofa, CookingPot, Bath,
   Wifi, Tv, Snowflake, Coffee, Wind,
@@ -99,6 +100,10 @@ export function Amenities() {
   // sobald keine Saisonpreise mehr hinterlegt sind.
   const { min: minRate, max: maxRate } = seasonPriceRange(activeTab, config.basePrice);
   const hasPriceRange = minRate !== maxRate;
+  // Größte Ersparnis pro Nacht gegenüber den Buchungsportalen, erreicht im
+  // günstigsten Saisonzeitraum. Bewusst OHNE das Winterangebot gerechnet –
+  // das setzt 5 Nächte voraus und wäre als „bis zu" nicht bedingungsfrei.
+  const maxNightlySavings = Math.max(0, config.portalPrice - minRate);
 
   return (
     <section id="ausstattung" className="py-(--spacing-section-sm) md:py-(--spacing-section)">
@@ -172,6 +177,22 @@ export function Amenities() {
                   <OfferFootnote offer="saisonpreise" />
                 </p>
               )}
+
+              {maxNightlySavings > 0 && (
+                <div className="mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 border-b border-warm-200 pb-3">
+                  <SavingsBadge
+                    savings={maxNightlySavings}
+                    variant="solid"
+                    label={`Bis zu ${formatEuro(maxNightlySavings)} pro Nacht sparen`}
+                  />
+                  <span className="text-[13px] text-warm-500">
+                    statt <StrikePrice amount={config.portalPrice} suffix=" / Nacht" /> auf
+                    Buchungsportalen
+                    <OfferFootnote offer="direkt" />
+                  </span>
+                </div>
+              )}
+
               <p className="text-warm-500 text-sm">
                 Inklusive {config.includedGuests} Personen · Jede weitere Person +{formatEuro(config.extraPersonPrice)}
               </p>

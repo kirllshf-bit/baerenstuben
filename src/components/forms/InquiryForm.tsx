@@ -9,6 +9,8 @@ import { formatEuro } from "@/lib/utils";
 import { findCombinations, MAX_TOTAL_ADULTS, MAX_TOTAL_GUESTS } from "@/lib/combinations";
 import { MIN_NIGHTS } from "@/lib/apartments";
 import type { ApartmentCombination } from "@/lib/combinations";
+import { StrikePrice, SavingsBadge } from "@/components/ui/PriceSavings";
+import { OfferFootnote } from "@/components/ui/OfferFootnote";
 import { Send, CheckCircle, AlertCircle, Info, Users, Percent, Snowflake, CalendarRange } from "lucide-react";
 import Link from "next/link";
 
@@ -270,16 +272,29 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
               {nights} {nights === 1 ? "Nacht" : "Nächte"} · {selectedCombo.units.length} {selectedCombo.units.length === 1 ? "Apartment" : "Apartments"}
             </span>
             <div className="text-right">
-              {selectedCombo.discount > 0 && (
-                <span className="text-warm-400 text-sm line-through mr-2">
-                  {formatEuro(selectedCombo.totalPrice)}
-                </span>
+              {selectedCombo.savings > 0 && (
+                <div className="text-sm">
+                  <StrikePrice amount={selectedCombo.portalTotal} />
+                  <span className="text-warm-400 text-xs ml-1.5">
+                    auf Buchungsportalen
+                    <OfferFootnote offer="direkt" />
+                  </span>
+                </div>
               )}
-              <span className="font-serif text-xl font-medium text-primary">
+              <span className="font-serif text-2xl font-medium text-primary">
                 {formatEuro(selectedCombo.totalAfterDiscount)}
               </span>
             </div>
           </div>
+
+          {selectedCombo.savings > 0 && (
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              <SavingsBadge savings={selectedCombo.savings} variant="solid" />
+              <span className="text-xs text-warm-700">
+                Direkt bei uns gebucht – ohne Portal-Aufschlag.
+              </span>
+            </div>
+          )}
           {selectedCombo.discount > 0 && (
             <div className="flex items-center gap-1.5 mt-1.5 text-accent-green">
               <Percent className="w-3.5 h-3.5" />
@@ -471,10 +486,8 @@ function CombinationCard({
           </span>
         </div>
         <div className="text-right flex-shrink-0 ml-3">
-          {combo.discount > 0 && (
-            <span className="text-warm-400 text-xs line-through mr-1.5">
-              {formatEuro(combo.totalPrice)}
-            </span>
+          {combo.savings > 0 && (
+            <StrikePrice amount={combo.portalTotal} className="text-xs mr-1.5" />
           )}
           <span className="text-primary font-medium text-sm">
             {formatEuro(combo.totalAfterDiscount)}
@@ -505,6 +518,7 @@ function CombinationCard({
             Winterpreis
           </span>
         )}
+        <SavingsBadge savings={combo.savings} variant="soft" />
       </div>
     </button>
   );

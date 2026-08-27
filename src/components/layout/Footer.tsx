@@ -90,7 +90,7 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Angebotskonditionen (Ziel der Fußnoten ¹ / ²) */}
+        {/* Angebotskonditionen (Ziel der Fußnoten ¹–⁴, siehe OfferFootnote.tsx) */}
         <div className="mt-12 pt-8 border-t border-white/10">
           <h3 className="font-serif text-base font-medium text-white/80 mb-4">Angebotskonditionen</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 text-xs leading-relaxed text-white/55 max-w-3xl">
@@ -123,6 +123,19 @@ export function Footer() {
               Umfasst ein Aufenthalt mehrere Zeiträume, wird jede Nacht zum jeweils
               gültigen Preis berechnet. Das genannte Enddatum ist die letzte
               Übernachtung des Zeitraums.
+            </p>
+            <p id="direktbucher-vorteil" className="scroll-mt-28 sm:col-span-2">
+              <sup className="text-secondary font-semibold">4</sup>{" "}
+              <span className="font-semibold text-white/75">Vergleichspreis / Direktbucher-Vorteil:</span>{" "}
+              Durchgestrichene Preise sind keine früheren Preise von uns, sondern der
+              aktuelle Preis derselben Wohnung auf Buchungsportalen wie Booking.com und
+              Airbnb – dort kommt die Provision des Portals hinzu. Vergleichspreis pro
+              Nacht: Apartment 140&nbsp;€, Apartment&nbsp;Groß 150&nbsp;€,
+              Apartment&nbsp;Premium 180&nbsp;€. Angegebene Ersparnisse beziehen sich auf
+              denselben Zeitraum und dieselbe Personenzahl; der Aufpreis für weitere
+              Personen fällt auf beiden Seiten gleichermaßen an und bleibt daher
+              unberücksichtigt. Im Zeitraum 21.12.–03.01. entspricht unser Preis dem
+              Portalpreis – dort entsteht kein Direktbucher-Vorteil.
             </p>
           </div>
         </div>

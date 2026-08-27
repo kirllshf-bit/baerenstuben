@@ -14,6 +14,7 @@ export const APARTMENTS: ApartmentConfig[] = [
     size: 49,
     basePrice: 130,
     winterPrice: 80,
+    portalPrice: 140,
     includedGuests: 2,
     maxGuests: 4,
     maxAdults: 2,
@@ -27,6 +28,7 @@ export const APARTMENTS: ApartmentConfig[] = [
     size: 58,
     basePrice: 140,
     winterPrice: 90,
+    portalPrice: 150,
     includedGuests: 2,
     maxGuests: 4,
     maxAdults: 2,
@@ -40,6 +42,7 @@ export const APARTMENTS: ApartmentConfig[] = [
     size: 60,
     basePrice: 170,
     winterPrice: 110,
+    portalPrice: 180,
     includedGuests: 4,
     maxGuests: 5,
     maxAdults: 4,
@@ -201,6 +204,12 @@ export function calculatePrice(
   const discount = Math.round(totalPrice * discountPercent / 100);
   const totalAfterDiscount = totalPrice - discount;
 
+  // Vergleichspreis: derselbe Aufenthalt auf einem Buchungsportal. Der
+  // Personen-Aufpreis fällt dort ebenso an und steht deshalb auf beiden
+  // Seiten – die Ersparnis bildet damit nur die Übernachtungsdifferenz ab.
+  const portalTotal = (config.portalPrice + extraPersonFee) * nights;
+  const savings = Math.max(0, portalTotal - totalAfterDiscount);
+
   return {
     basePrice,
     extraPersonFee,
@@ -213,6 +222,8 @@ export function calculatePrice(
     pricingMode,
     segments,
     isMixedSeason: segments.length > 1,
+    portalTotal,
+    savings,
   };
 }
 

@@ -74,6 +74,14 @@ Periods use **year-specific** dates (season 2026/27 only) and must be extended m
 
 The winter offer (€80/90/110, 5+ nights, entire stay inside 01.11.–15.03.) is **year-recurring** (day/month), unlike the season periods. It is **suspended 21.12.–03.01.** (`isPeakHolidayNight()` in `seasons.ts`) — otherwise a New Year's stay would drop from €140 to €80/night. The 5% long-stay discount still applies over the holidays.
 
+### Direct-Booking Advantage (strike-through prices)
+
+`portalPrice` (140/150/180) is the price of the same unit **on Booking.com / Airbnb**, where the portal commission is added. It is a comparison figure only and never enters any calculation. `calculatePrice()` derives `portalTotal` and `savings` (`portalTotal − totalAfterDiscount`, clamped at 0); `findCombinations()` sums both across units.
+
+UI building blocks live in `src/components/ui/PriceSavings.tsx` (`StrikePrice`, `SavingsBadge`). **Every strike-through price must carry `<OfferFootnote offer="direkt" />`** — it points to the footnote ⁴ explanation in the footer. A strike-through price without a stated reference is legally attackable in Germany; the crossed-out figure is explicitly *not* a former price of ours.
+
+Over 21.12.–03.01. the direct price equals the portal price, so `savings` is 0 and no badge renders. Keep `portalPrice` in sync with the actual portal listings.
+
 Pricing tests: `npx tsx scripts/test-pricing.ts`.
 
 ### Mapbox Map (`src/components/ui/MapboxMap.tsx`)

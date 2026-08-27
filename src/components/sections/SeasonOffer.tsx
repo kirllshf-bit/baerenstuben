@@ -19,11 +19,25 @@
 import { Percent } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OfferFootnote } from "@/components/ui/OfferFootnote";
+import { SavingsBadge } from "@/components/ui/PriceSavings";
+import { getApartmentConfig } from "@/lib/apartments";
+import { seasonPriceRange } from "@/lib/seasons";
 
 interface SeasonOfferProps {
   variant?: "strip" | "pill";
   className?: string;
 }
+
+/**
+ * Größte Ersparnis pro Nacht gegenüber den Buchungsportalen, bezogen auf die
+ * Kategorie „Apartment" im günstigsten Saisonzeitraum – ohne den 5%-Rabatt und
+ * ohne das Winterangebot, damit die Zahl bedingungsfrei erreichbar bleibt.
+ */
+const APARTMENT = getApartmentConfig("apartment");
+const DIRECT_SAVINGS = Math.max(
+  0,
+  APARTMENT.portalPrice - seasonPriceRange("apartment", APARTMENT.basePrice).min
+);
 
 export function SeasonOffer({ variant = "pill", className }: SeasonOfferProps) {
   /* ── Variante A: Schmaler Hinweis-Streifen ───────────────────────── */
@@ -45,6 +59,16 @@ export function SeasonOffer({ variant = "pill", className }: SeasonOfferProps) {
         <span className="whitespace-nowrap">
           Ab 5 Nächten <span className="font-bold text-primary">5 % Rabatt</span>
           <OfferFootnote offer="saison" />
+        </span>
+        <span className="h-3.5 w-px bg-[#b7ccb9]" />
+        <span className="inline-flex items-center gap-2 whitespace-nowrap text-[13px] text-warm-700">
+          <SavingsBadge
+            savings={DIRECT_SAVINGS}
+            variant="solid"
+            label={`Bis zu ${DIRECT_SAVINGS} € / Nacht sparen`}
+          />
+          gegenüber Buchungsportalen
+          <OfferFootnote offer="direkt" className="text-warm-500" />
         </span>
       </div>
     );
@@ -68,6 +92,12 @@ export function SeasonOffer({ variant = "pill", className }: SeasonOfferProps) {
       <span className="whitespace-nowrap rounded-full bg-accent-green px-3.5 py-1.5 text-xs font-semibold text-white">
         5 % Rabatt
       </span>
+      <SavingsBadge
+        savings={DIRECT_SAVINGS}
+        variant="soft"
+        label={`bis −${DIRECT_SAVINGS} € / Nacht`}
+        className="hidden sm:inline-flex"
+      />
       <OfferFootnote offer="saison" className="text-warm-500" />
     </div>
   );

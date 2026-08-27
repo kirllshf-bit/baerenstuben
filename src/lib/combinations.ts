@@ -36,6 +36,10 @@ export interface ApartmentCombination {
    * Summe der Nachtsätze aller enthaltenen Wohnungen (ohne Personen-Aufpreis).
    */
   rateSegments: NightlyRateSegment[];
+  /** Was dieselbe Kombination auf Buchungsportalen kosten würde (Vergleichspreis). */
+  portalTotal: number;
+  /** portalTotal − totalAfterDiscount. 0 = kein Direktbucher-Vorteil (kein Badge anzeigen). */
+  savings: number;
 }
 
 /**
@@ -249,6 +253,9 @@ export function findCombinations(
     const discount = Math.round(totalPrice * discountPercent / 100);
     const totalAfterDiscount = totalPrice - discount;
 
+    const portalTotal = unitAllocations.reduce((s, u) => s + u.price.portalTotal, 0);
+    const savings = Math.max(0, portalTotal - totalAfterDiscount);
+
     rawResults.push({
       units: unitAllocations,
       displayLabel: displayLabel(selectedTypes),
@@ -261,6 +268,8 @@ export function findCombinations(
       // Alle Units eines Aufenthalts durchlaufen dieselben Zeiträume – eine reicht.
       isMixedSeason: unitAllocations[0]?.price.isMixedSeason ?? false,
       rateSegments: mergeRateSegments(unitAllocations),
+      portalTotal,
+      savings,
     });
   }
 
