@@ -4,8 +4,8 @@ import type { ApartmentType } from "@/types/apartment";
  * Saisonale Nachtpreise (Saison 2026/27).
  *
  * KONVENTION: `start` und `end` bezeichnen ÜBERNACHTUNGSDATEN, beide inklusive.
- * `end: "2026-10-04"` heißt also: die Nacht 04.→05.10. gehört noch zu diesem
- * Zeitraum, der nächste Zeitraum beginnt mit der Nacht 05.→06.10.
+ * `end: "2026-10-01"` heißt also: die Nacht 01.→02.10. gehört noch zu diesem
+ * Zeitraum, der nächste Zeitraum beginnt mit der Nacht 02.→03.10.
  * Die Zeiträume schließen deshalb lückenlos aneinander an.
  *
  * Nächte außerhalb aller Zeiträume werden mit `basePrice` aus apartments.ts
@@ -28,12 +28,12 @@ export interface SeasonPeriod {
 export const SEASON_PERIODS: readonly SeasonPeriod[] = [
   {
     start: "2026-09-07",
-    end: "2026-10-04",
+    end: "2026-10-01",
     label: "Nachsaison September",
-    prices: { apartment: 115, "apartment-gross": 115, "apartment-premium": 145 },
+    prices: { apartment: 115, "apartment-gross": 120, "apartment-premium": 145 },
   },
   {
-    start: "2026-10-05",
+    start: "2026-10-02",
     end: "2026-10-31",
     label: "Herbstferien",
     prices: { apartment: 130, "apartment-gross": 140, "apartment-premium": 170 },

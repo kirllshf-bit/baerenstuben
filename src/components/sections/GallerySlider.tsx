@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface GallerySliderProps {
   title: string;
@@ -110,12 +110,14 @@ export function GallerySlider({ title, subtitle, images }: GallerySliderProps) {
             className="flex-shrink-0 w-[80%] sm:w-[60%] md:w-[45%] lg:w-[38%] snap-start"
           >
             <div className="relative aspect-[4/3] rounded-[var(--radius-card)] overflow-hidden bg-warm-200 shadow-[var(--shadow-card)]">
-              <img
+              <Image
                 src={src}
                 alt={`${title} – Bild ${i + 1}`}
+                fill
+                sizes="(min-width: 1024px) 38vw, (min-width: 768px) 45vw, (min-width: 640px) 60vw, 80vw"
                 loading={i === 0 ? "eager" : "lazy"}
                 decoding="async"
-                className="absolute inset-0 w-full h-full object-cover"
+                className="object-cover"
               />
             </div>
           </div>

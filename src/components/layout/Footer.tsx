@@ -114,8 +114,8 @@ export function Footer() {
               <sup className="text-secondary font-semibold">3</sup>{" "}
               <span className="font-semibold text-white/75">Saisonpreise (pro Nacht, Saison 2026/27):</span>{" "}
               Angegeben jeweils Apartment / Apartment&nbsp;Groß / Apartment&nbsp;Premium.
-              07.09.–04.10.: 115&nbsp;/&nbsp;115&nbsp;/&nbsp;145&nbsp;€ ·
-              05.10.–31.10.: 130&nbsp;/&nbsp;140&nbsp;/&nbsp;170&nbsp;€ ·
+              07.09.–01.10.: 115&nbsp;/&nbsp;120&nbsp;/&nbsp;145&nbsp;€ ·
+              02.10.–31.10.: 130&nbsp;/&nbsp;140&nbsp;/&nbsp;170&nbsp;€ ·
               01.11.–20.12.: 95&nbsp;/&nbsp;105&nbsp;/&nbsp;135&nbsp;€ ·
               21.12.–03.01.: 140&nbsp;/&nbsp;150&nbsp;/&nbsp;180&nbsp;€ ·
               04.01.–14.03.: 95&nbsp;/&nbsp;105&nbsp;/&nbsp;135&nbsp;€.

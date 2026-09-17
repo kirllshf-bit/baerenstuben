@@ -60,12 +60,12 @@ Minimum stay: 2 nights. At least 1 adult required. Child age max: 17. **5% disco
 
 `basePrice` above is the fallback for nights **outside** all season periods. Season rates are applied **per night** — a stay crossing a period boundary is billed night by night (see `nightlyRateSegments()` in `apartments.ts`, exposed as `segments` / `isMixedSeason` on the price result).
 
-Periods use **year-specific** dates (season 2026/27 only) and must be extended manually for the next season. `start` and `end` are both **inclusive overnight dates** — `end: "2026-10-04"` means the night 04.→05.10. still belongs to that period, so periods abut without gaps.
+Periods use **year-specific** dates (season 2026/27 only) and must be extended manually for the next season. `start` and `end` are both **inclusive overnight dates** — `end: "2026-10-01"` means the night 01.→02.10. still belongs to that period, so periods abut without gaps.
 
 | Period | apartment | -gross | -premium |
 |---|---|---|---|
-| 07.09.–04.10.2026 | €115 | €115 | €145 |
-| 05.10.–31.10.2026 | €130 | €140 | €170 |
+| 07.09.–01.10.2026 | €115 | €120 | €145 |
+| 02.10.–31.10.2026 | €130 | €140 | €170 |
 | 01.11.–20.12.2026 | €95 | €105 | €135 |
 | 21.12.2026–03.01.2027 | €140 | €150 | €180 |
 | 04.01.–14.03.2027 | €95 | €105 | €135 |

@@ -96,6 +96,11 @@ console.log("\n=== calculatePrice() – Saisonpreise (einheitlicher Zeitraum) ==
   check("Nachsaison Sep premium totalPrice=290", p.totalPrice, 290);
 }
 {
+  // 10.09.26→12.09.26, 2N groß: 120×2=240
+  const p = priceFor("2026-09-10", "2026-09-12", 2, 0, "apartment-gross");
+  check("Nachsaison Sep groß totalPrice=240", p.totalPrice, 240);
+}
+{
   // 10.11.26→12.11.26, 2N: Nebensaison 95×2=190 (unter 5N → kein Winterpreis)
   const p = priceFor("2026-11-10", "2026-11-12", 2, 0);
   check("Nebensaison Nov basePrice=95", p.basePrice, 95);
@@ -126,17 +131,17 @@ console.log("\n=== calculatePrice() – Saisonpreise (einheitlicher Zeitraum) ==
 
 console.log("\n=== calculatePrice() – nachtgenau über Zeitraumgrenzen ===");
 {
-  // 03.10.26→05.10.26, 2N: 03.+04.10. je 115 = 230 (Grenze 04./05.10.)
-  const p = priceFor("2026-10-03", "2026-10-05", 2, 0);
-  check("Grenze 04.10. inklusive: totalPrice=230", p.totalPrice, 230);
-  check("Grenze 04.10. isMixedSeason=false", p.isMixedSeason, false);
+  // 30.09.26→02.10.26, 2N: 30.09.+01.10. je 115 = 230 (Grenze 01./02.10.)
+  const p = priceFor("2026-09-30", "2026-10-02", 2, 0);
+  check("Grenze 01.10. inklusive: totalPrice=230", p.totalPrice, 230);
+  check("Grenze 01.10. isMixedSeason=false", p.isMixedSeason, false);
 }
 {
-  // 04.10.26→06.10.26, 2N: 04.10.=115 + 05.10.=130 → 245
-  const p = priceFor("2026-10-04", "2026-10-06", 2, 0);
-  check("Wechsel 04.→05.10. totalPrice=245", p.totalPrice, 245);
-  check("Wechsel 04.→05.10. isMixedSeason=true", p.isMixedSeason, true);
-  check("Wechsel 04.→05.10. segments", p.segments.map((s) => [s.rate, s.nights]), [[115, 1], [130, 1]]);
+  // 01.10.26→03.10.26, 2N: 01.10.=115 + 02.10.=130 → 245
+  const p = priceFor("2026-10-01", "2026-10-03", 2, 0);
+  check("Wechsel 01.→02.10. totalPrice=245", p.totalPrice, 245);
+  check("Wechsel 01.→02.10. isMixedSeason=true", p.isMixedSeason, true);
+  check("Wechsel 01.→02.10. segments", p.segments.map((s) => [s.rate, s.nights]), [[115, 1], [130, 1]]);
 }
 {
   // 28.10.26→04.11.26, 7N: 4×130 (Okt) + 3×95 (Nov) = 805 − 5% (40) = 765
@@ -165,9 +170,9 @@ console.log("\n=== calculatePrice() – nachtgenau über Zeitraumgrenzen ===");
   check("Kreuzt 15.03. segments", p.segments.map((s) => [s.rate, s.nights]), [[95, 4], [130, 1]]);
 }
 {
-  // Personen-Aufpreis gilt in jedem Zeitraum: 04.10.→06.10., 3 Erw.
+  // Personen-Aufpreis gilt in jedem Zeitraum: 01.10.→03.10., 3 Erw.
   // (115+130) + 5×2 = 255
-  const p = priceFor("2026-10-04", "2026-10-06", 3, 0);
+  const p = priceFor("2026-10-01", "2026-10-03", 3, 0);
   check("Mixed + Aufpreis extraPersonFee=5", p.extraPersonFee, 5);
   check("Mixed + Aufpreis totalPrice=255", p.totalPrice, 255);
 }

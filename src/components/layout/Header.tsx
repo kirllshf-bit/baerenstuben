@@ -17,12 +17,14 @@ const NAV_ITEMS = [
 ];
 
 export function Header() {
-  // overHero: true = Logo über dunklem Hero → weißes Logo
-  //           false = Hero verlassen → braunes Logo + heller Header
-  const [overHero, setOverHero] = useState(true);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const [isHeroVisible, setIsHeroVisible] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Nur auf der Startseite kann der Header über dem dunklen Hero liegen.
+  // Auf Unterseiten ist er unabhängig vom Observer immer hell.
+  const overHero = pathname === "/" && isHeroVisible;
 
   const handleNavClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
@@ -59,16 +61,12 @@ export function Header() {
 
   useEffect(() => {
     const sentinel = document.getElementById("hero-sentinel");
-    if (!sentinel) {
-      // Keine Hero-Section (Impressum, Datenschutz etc.): Header fest im hellen Zustand
-      setOverHero(false);
-      return;
-    }
+    if (!sentinel) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         // Sentinel sichtbar → wir sind noch im Hero-Bereich
-        setOverHero(entry.isIntersecting);
+        setIsHeroVisible(entry.isIntersecting);
       },
       {
         // rootMargin: Der Header ist ca. 80px hoch; sobald der Sentinel
@@ -80,7 +78,7 @@ export function Header() {
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     if (mobileOpen) {

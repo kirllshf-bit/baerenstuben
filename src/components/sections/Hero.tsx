@@ -37,7 +37,6 @@ export function Hero() {
       // rekursiv mit normalem Takt
       scheduleNext(SLIDE_DURATION);
     }, duration);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
