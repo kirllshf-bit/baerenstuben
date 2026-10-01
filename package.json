@@ -7,7 +7,7 @@
     "generate-availability": "tsx scripts/generate-availability.ts",
     "verify-turnover": "tsx scripts/verify-turnover.ts",
     "test:pricing": "tsx scripts/test-pricing.ts && tsx scripts/test-published-pricing.ts",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"
   },
