@@ -1,9 +1,18 @@
+"use client";
+
+import { usePricing } from "@/components/PricingProvider";
+import { getApartmentConfig } from "@/lib/apartments";
+import { PRICING_TYPES } from "@/lib/website-pricing";
+import { formatEuro } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { MapPin, Phone, Mail } from "lucide-react";
 
-export function Footer() {
+export function Footer({ showPricing = true }: { showPricing?: boolean }) {
+  const { pricing } = usePricing();
+  const configs = PRICING_TYPES.map(type => getApartmentConfig(type, pricing));
+  const priceList = (kind: "winterPrice" | "portalPrice" | "basePrice") => configs.map(config => `${config.label} ${formatEuro(config[kind])}`).join(", ");
   return (
     <footer id="kontakt" className="bg-primary-dark text-white/90">
       <Container className="py-12 sm:py-16 md:py-20">
@@ -91,15 +100,14 @@ export function Footer() {
         </div>
 
         {/* Angebotskonditionen (Ziel der Fußnoten ¹–⁴, siehe OfferFootnote.tsx) */}
-        <div className="mt-12 pt-8 border-t border-white/10">
+        {showPricing && <div className="mt-12 pt-8 border-t border-white/10">
           <h3 className="font-serif text-base font-medium text-white/80 mb-4">Angebotskonditionen</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 text-xs leading-relaxed text-white/55 max-w-3xl">
             <p id="angebot-winter" className="scroll-mt-28">
               <sup className="text-secondary font-semibold">1</sup>{" "}
               <span className="font-semibold text-white/75">Winterangebot:</span> gültig vom 01.11.
               bis 15.03. (jährlich), ausgenommen 21.12.–03.01., ab 5&nbsp;Nächten. Preis pro Nacht
-              je Wohnungskategorie: Apartment 80&nbsp;€, Apartment Groß 90&nbsp;€,
-              Apartment Premium 110&nbsp;€. Der Winterpreis gilt nur, wenn der gesamte Aufenthalt
+              je Wohnungskategorie: {priceList("winterPrice")}. Der Winterpreis gilt nur, wenn der gesamte Aufenthalt
               in diesen Zeitraum fällt; ein zusätzlicher Rabatt wird nicht gewährt.
               Aufpreis für weitere Personen unverändert.
             </p>
@@ -112,14 +120,14 @@ export function Footer() {
             </p>
             <p id="saisonpreise" className="scroll-mt-28 sm:col-span-2">
               <sup className="text-secondary font-semibold">3</sup>{" "}
-              <span className="font-semibold text-white/75">Saisonpreise (pro Nacht, Saison 2026/27):</span>{" "}
-              Angegeben jeweils Apartment / Apartment&nbsp;Groß / Apartment&nbsp;Premium.
-              07.09.–01.10.: 115&nbsp;/&nbsp;120&nbsp;/&nbsp;145&nbsp;€ ·
-              02.10.–31.10.: 130&nbsp;/&nbsp;140&nbsp;/&nbsp;170&nbsp;€ ·
-              01.11.–20.12.: 95&nbsp;/&nbsp;105&nbsp;/&nbsp;135&nbsp;€ ·
-              21.12.–03.01.: 140&nbsp;/&nbsp;150&nbsp;/&nbsp;180&nbsp;€ ·
-              04.01.–14.03.: 95&nbsp;/&nbsp;105&nbsp;/&nbsp;135&nbsp;€.
-              Außerhalb dieser Zeiträume gelten 130&nbsp;/&nbsp;140&nbsp;/&nbsp;170&nbsp;€.
+              <span className="font-semibold text-white/75">Saisonpreise pro Nacht:</span>{" "}
+              {configs.map(config => <span key={config.type} className="mt-2 block">
+                <strong>{config.label}:</strong>{" "}
+                {pricing.rates.filter(rate => rate.apartment_type === config.type && (rate.valid_to !== null || rate.valid_from > "2000-01-01"))
+                  .sort((a, b) => a.valid_from.localeCompare(b.valid_from))
+                  .map(rate => `${rate.valid_from.split("-").reverse().join(".")}–${rate.valid_to ? rate.valid_to.split("-").reverse().join(".") : "unbefristet"}: ${formatEuro(rate.price_per_night)} inkl. ${rate.included_guests} Personen, weitere Personen +${formatEuro(rate.extra_person_price)} je Nacht`).join(" · ")}
+              </span>)}
+              <span className="mt-2 block">Grundpreise außerhalb der Saisonzeiträume: {priceList("basePrice")}.</span>{" "}
               Umfasst ein Aufenthalt mehrere Zeiträume, wird jede Nacht zum jeweils
               gültigen Preis berechnet. Das genannte Enddatum ist die letzte
               Übernachtung des Zeitraums.
@@ -130,15 +138,15 @@ export function Footer() {
               Durchgestrichene Preise sind keine früheren Preise von uns, sondern der
               aktuelle Preis derselben Wohnung auf Buchungsportalen wie Booking.com und
               Airbnb – dort kommt die Provision des Portals hinzu. Vergleichspreis pro
-              Nacht: Apartment 140&nbsp;€, Apartment&nbsp;Groß 150&nbsp;€,
-              Apartment&nbsp;Premium 180&nbsp;€. Angegebene Ersparnisse beziehen sich auf
+              Nacht: {priceList("portalPrice")}. Angegebene Ersparnisse beziehen sich auf
               denselben Zeitraum und dieselbe Personenzahl; der Aufpreis für weitere
               Personen fällt auf beiden Seiten gleichermaßen an und bleibt daher
-              unberücksichtigt. Im Zeitraum 21.12.–03.01. entspricht unser Preis dem
-              Portalpreis – dort entsteht kein Direktbucher-Vorteil.
+              unberücksichtigt.
             </p>
           </div>
         </div>
+
+        }
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40">

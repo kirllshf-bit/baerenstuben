@@ -260,7 +260,7 @@ export default function DatenschutzPage() {
           </div>
         </Container>
       </main>
-      <Footer />
+      <Footer showPricing={false} />
     </>
   );
 }

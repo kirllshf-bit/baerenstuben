@@ -1,12 +1,13 @@
 "use client";
 
+import { usePricing } from "@/components/PricingProvider";
 import { useState, useMemo } from "react";
 import { format, differenceInCalendarDays } from "date-fns";
 import { de } from "date-fns/locale";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { formatEuro } from "@/lib/utils";
-import { findCombinations, MAX_TOTAL_ADULTS, MAX_TOTAL_GUESTS } from "@/lib/combinations";
+import { getInquiryCombinations, MAX_TOTAL_ADULTS, MAX_TOTAL_GUESTS } from "@/lib/combinations";
 import { MIN_NIGHTS } from "@/lib/apartments";
 import type { ApartmentCombination } from "@/lib/combinations";
 import { StrikePrice, SavingsBadge } from "@/components/ui/PriceSavings";
@@ -24,7 +25,8 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [childAges, setChildAges] = useState<number[]>([]);
-  const [selectedComboIndex, setSelectedComboIndex] = useState(0);
+  const [selectedComboKey, setSelectedComboKey] = useState<string | null>(null);
+  const { pricing, refresh, error: pricingError } = usePricing();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -42,9 +44,11 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
   // Kombinationen berechnen
   const combinations = useMemo(() => {
     if (!checkIn || !checkOut || nights < MIN_NIGHTS || !unitData) return [];
-    return findCombinations(adults, children, nights, checkIn, checkOut, unitData);
-  }, [adults, children, nights, checkIn, checkOut, unitData]);
+    return getInquiryCombinations(adults, children, nights, checkIn, checkOut, unitData, pricing, selectedComboKey?.split("+"));
+  }, [adults, children, nights, checkIn, checkOut, unitData, pricing, selectedComboKey]);
 
+  const comboKey = (combo: ApartmentCombination) => combo.units.map(unit => unit.unitId).sort().join("+");
+  const selectedComboIndex = selectedComboKey ? combinations.findIndex(combo => comboKey(combo) === selectedComboKey) : 0;
   const selectedCombo = combinations[selectedComboIndex] || null;
 
   const handleChildrenChange = (count: number) => {
@@ -53,7 +57,7 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
       if (count > prev.length) return [...prev, ...Array(count - prev.length).fill(0)];
       return prev.slice(0, count);
     });
-    setSelectedComboIndex(0);
+    setSelectedComboKey(null);
   };
 
   const handleChildAgeChange = (index: number, age: number) => {
@@ -86,8 +90,6 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
     setStatus("submitting");
     setErrorMsg("");
 
-    const checkInFormatted = checkIn ? format(new Date(checkIn), "dd.MM.yyyy") : "";
-    const checkOutFormatted = checkOut ? format(new Date(checkOut), "dd.MM.yyyy") : "";
 
     try {
       const res = await fetch("/api/inquiry", {
@@ -98,8 +100,11 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
           email: email.trim(),
           phone: phone.trim() || undefined,
           message: message.trim() || undefined,
-          checkIn: checkInFormatted,
-          checkOut: checkOutFormatted,
+          checkIn,
+          checkOut,
+          unitIds: selectedCombo.units.map(unit => unit.unitId),
+          pricingVersion: pricing.version,
+          privacyConsent,
           nights,
           adults,
           children,
@@ -119,6 +124,7 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
+        if (res.status === 409) await refresh();
         throw new Error(data?.error || "Anfrage konnte nicht gesendet werden.");
       }
 
@@ -188,7 +194,7 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
           <label className="block text-sm font-medium text-warm-700 mb-1.5">Erwachsene</label>
           <select
             value={adults}
-            onChange={(e) => { setAdults(Number(e.target.value)); setSelectedComboIndex(0); }}
+            onChange={(e) => { setAdults(Number(e.target.value)); setSelectedComboKey(null); }}
             className="w-full px-4 py-2.5 rounded-lg border border-warm-200 bg-white text-sm text-warm-900 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
           >
             {Array.from({ length: MAX_TOTAL_ADULTS }, (_, i) => i + 1).map((n) => (
@@ -248,10 +254,10 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
             <div className="space-y-2">
               {combinations.slice(0, 5).map((combo, i) => (
                 <CombinationCard
-                  key={i}
+                  key={comboKey(combo)}
                   combo={combo}
                   selected={selectedComboIndex === i}
-                  onSelect={() => setSelectedComboIndex(i)}
+                  onSelect={() => setSelectedComboKey(comboKey(combinations[i]))}
                 />
               ))}
             </div>
@@ -263,6 +269,8 @@ export function InquiryForm({ checkIn, checkOut, unitData }: InquiryFormProps) {
           )}
         </div>
       )}
+
+      {pricingError && <p role="status" className="mb-4 text-sm text-warm-600">Die Preise konnten gerade nicht aktualisiert werden. Wir prüfen den aktuellen Preis beim Senden erneut.</p>}
 
       {/* Preisvorschau */}
       {selectedCombo && (

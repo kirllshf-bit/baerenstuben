@@ -5,6 +5,7 @@ import type {
   NightlyRateSegment,
   PricingMode,
 } from "@/types/apartment";
+import { calculateStay, rateForNight, type PricingSnapshot } from "./website-pricing";
 import { isPeakHolidayNight, seasonRate } from "./seasons";
 
 export const APARTMENTS: ApartmentConfig[] = [
@@ -52,10 +53,14 @@ export const APARTMENTS: ApartmentConfig[] = [
   },
 ];
 
-export function getApartmentConfig(type: ApartmentType): ApartmentConfig {
+export function getApartmentConfig(type: ApartmentType, pricing?: PricingSnapshot): ApartmentConfig {
   const config = APARTMENTS.find((a) => a.type === type);
   if (!config) throw new Error(`Unknown apartment type: ${type}`);
-  return config;
+  if (!pricing) return config;
+  const base = rateForNight(pricing, type, "2000-01-01");
+  return { ...config, basePrice: base.price_per_night, includedGuests: base.included_guests,
+    extraPersonPrice: base.extra_person_price, winterPrice: pricing.settings.winterPrices[type], portalPrice: pricing.settings.portalPrices[type] };
+
 }
 
 /**
@@ -178,8 +183,10 @@ export function calculatePrice(
   children: number,
   nights: number,
   isWinter = false,
-  checkIn?: string
+  checkIn?: string,
+  pricing?: PricingSnapshot
 ): ApartmentPriceCalculation {
+  if (pricing && checkIn) return calculateStay(pricing, type, checkIn, nights, adults + children);
   const config = getApartmentConfig(type);
   const totalGuests = adults + children;
   const extraGuests = Math.max(0, totalGuests - config.includedGuests);

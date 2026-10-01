@@ -139,7 +139,7 @@ export default function ImpressumPage() {
           </div>
         </Container>
       </main>
-      <Footer />
+      <Footer showPricing={false} />
     </>
   );
 }

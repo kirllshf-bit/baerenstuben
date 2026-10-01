@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { getWebsitePricing } from "@/lib/server-pricing";
+import { quoteInquiry, InquiryPriceError } from "@/lib/inquiry-price";
 import { MIN_NIGHTS } from "@/lib/apartments";
 
 export const dynamic = "force-dynamic";
@@ -155,9 +157,14 @@ export async function POST(request: NextRequest) {
 
   let body: InquiryBody;
   try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 400 });
+    const input: unknown = await request.json();
+    // Preserve the honeypot without querying pricing or sending email.
+    if (input && typeof input === "object" && "website" in input && typeof input.website === "string" && input.website.trim()) return NextResponse.json({ success: true });
+    body = quoteInquiry(input, await getWebsitePricing());
+  } catch (error) {
+    if (error instanceof InquiryPriceError) return NextResponse.json({ error: error.message }, { status: error.status });
+    if (error instanceof SyntaxError) return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 400 });
+    return NextResponse.json({ error: "Die aktuellen Preise sind gerade nicht verfügbar. Bitte versuchen Sie es erneut." }, { status: 503 });
   }
 
   const validationError = validate(body);

@@ -1,3 +1,5 @@
+import { PricingProvider } from "@/components/PricingProvider";
+import { getWebsitePricing } from "@/lib/server-pricing";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
@@ -9,6 +11,8 @@ import { Gallery } from "@/components/sections/Gallery";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { AvailabilityInquiry } from "@/components/sections/AvailabilityInquiry";
 import { FAQ } from "@/components/sections/FAQ";
+
+export const dynamic = "force-dynamic";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -31,9 +35,10 @@ const jsonLd = {
   numberOfRooms: 5,
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const pricing = await getWebsitePricing();
   return (
-    <>
+    <PricingProvider initialPricing={pricing}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -51,6 +56,6 @@ export default function HomePage() {
         <FAQ />
       </main>
       <Footer />
-    </>
+    </PricingProvider>
   );
 }

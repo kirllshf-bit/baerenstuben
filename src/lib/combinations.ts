@@ -1,3 +1,4 @@
+import type { PricingSnapshot } from "./website-pricing";
 import { APARTMENTS, calculatePrice, isWinterStay, normalDiscountPercent } from "./apartments";
 import type {
   ApartmentType,
@@ -47,12 +48,15 @@ export interface ApartmentCombination {
  * durchlaufen dieselben Zeiträume, die Segment-Strukturen sind daher deckungsgleich.
  */
 function mergeRateSegments(units: UnitAllocation[]): NightlyRateSegment[] {
-  const first = units[0]?.price.segments;
-  if (!first) return [];
-  return first.map((seg, i) => ({
-    ...seg,
-    rate: units.reduce((sum, u) => sum + (u.price.segments[i]?.rate ?? 0), 0),
-  }));
+  const nightly = units.map(u => u.price.segments.flatMap(segment => Array<number>(segment.nights).fill(segment.rate)));
+  const merged: NightlyRateSegment[] = [];
+  for (let i = 0; i < (nightly[0]?.length ?? 0); i++) {
+    const rate = Math.round(nightly.reduce((sum, rates) => sum + rates[i], 0) * 100) / 100;
+    const last = merged[merged.length - 1];
+    if (last?.rate === rate) last.nights++;
+    else merged.push({ rate, nights: 1, label: units[0].price.segments[0].label });
+  }
+  return merged;
 }
 
 /**
@@ -60,7 +64,7 @@ function mergeRateSegments(units: UnitAllocation[]): NightlyRateSegment[] {
  * Die 3 identischen Apartments (49m²) werden intern getrennt gehalten,
  * im Frontend aber nur als Typ "Apartment" angezeigt.
  */
-const ALL_UNITS = [
+export const ALL_UNITS = [
   { unitId: "apt-1", type: "apartment" as ApartmentType, size: 49 },
   { unitId: "apt-2", type: "apartment" as ApartmentType, size: 49 },
   { unitId: "apt-3", type: "apartment" as ApartmentType, size: 49 },
@@ -204,11 +208,13 @@ export function findCombinations(
   nights: number,
   checkIn: string,
   checkOut: string,
-  unitBlockedDates: Record<string, { blockedDates: string[] }>
+  unitBlockedDates: Record<string, { blockedDates: string[] }>,
+  pricing?: PricingSnapshot,
+  selectedUnitIds?: string[]
 ): ApartmentCombination[] {
   // Alle verfügbaren Units ermitteln
   const availableUnits = ALL_UNITS.filter((u) =>
-    isUnitAvailable(u.unitId, checkIn, checkOut, unitBlockedDates)
+    isUnitAvailable(u.unitId, checkIn, checkOut, unitBlockedDates) && (!selectedUnitIds || selectedUnitIds.includes(u.unitId))
   );
 
   // Winterpreis-Erkennung EINMAL für den gesamten Aufenthalt – konsistent für
@@ -221,6 +227,7 @@ export function findCombinations(
 
   for (let mask = 1; mask < (1 << n); mask++) {
     const selectedUnits = availableUnits.filter((_, i) => mask & (1 << i));
+    if (selectedUnitIds && selectedUnits.length !== selectedUnitIds.length) continue;
     const selectedTypes = selectedUnits.map((u) => u.type);
 
     // Kapazität prüfen
@@ -235,7 +242,7 @@ export function findCombinations(
 
     // Preis berechnen
     const unitAllocations: UnitAllocation[] = selectedUnits.map((unit, i) => {
-      const price = calculatePrice(unit.type, allocation[i].adults, allocation[i].children, nights, winter, checkIn);
+      const price = calculatePrice(unit.type, allocation[i].adults, allocation[i].children, nights, winter, checkIn, pricing);
       return {
         unitId: unit.unitId,
         apartmentType: unit.type,
@@ -247,13 +254,13 @@ export function findCombinations(
       };
     });
 
-    const totalPrice = unitAllocations.reduce((s, u) => s + u.price.totalPrice, 0);
+    const totalPrice = Math.round(unitAllocations.reduce((s, u) => s + u.price.totalPrice, 0) * 100) / 100;
     // Im Winter kein zusätzlicher Prozent-Rabatt, sonst regulärer Langzeit-Rabatt.
     const discountPercent = winter ? 0 : normalDiscountPercent(nights);
-    const discount = Math.round(totalPrice * discountPercent / 100);
-    const totalAfterDiscount = totalPrice - discount;
+    const discount = unitAllocations.reduce((sum, unit) => sum + unit.price.discount, 0);
+    const totalAfterDiscount = Math.round((totalPrice - discount) * 100) / 100;
 
-    const portalTotal = unitAllocations.reduce((s, u) => s + u.price.portalTotal, 0);
+    const portalTotal = Math.round(unitAllocations.reduce((s, u) => s + u.price.portalTotal, 0) * 100) / 100;
     const savings = Math.max(0, portalTotal - totalAfterDiscount);
 
     rawResults.push({
@@ -266,12 +273,14 @@ export function findCombinations(
       nights,
       pricingMode: winter ? "winter" : "normal",
       // Alle Units eines Aufenthalts durchlaufen dieselben Zeiträume – eine reicht.
-      isMixedSeason: unitAllocations[0]?.price.isMixedSeason ?? false,
+      isMixedSeason: mergeRateSegments(unitAllocations).length > 1,
       rateSegments: mergeRateSegments(unitAllocations),
       portalTotal,
       savings,
     });
   }
+
+  if (selectedUnitIds) return rawResults;
 
   // Sortieren: weniger Units → günstigster Preis
   rawResults.sort((a, b) => {
@@ -301,4 +310,15 @@ export function findCombinations(
   // Größere Gruppe (4+ Gäste): Singles + Multi-Combos als Alternativen
   // Singles zuerst (kompakteste Lösung), dann Multi-Combos
   return [...singles.slice(0, 2), ...multis.slice(0, 4 - Math.min(singles.length, 2))].slice(0, 4);
+}
+
+/** Keeps an available selected accommodation visible even when new prices change its rank. */
+export function getInquiryCombinations(adults: number, children: number, nights: number, checkIn: string, checkOut: string,
+  units: Record<string, { blockedDates: string[] }>, pricing: PricingSnapshot, selectedUnitIds?: string[]): ApartmentCombination[] {
+  const recommended = findCombinations(adults, children, nights, checkIn, checkOut, units, pricing);
+  if (!selectedUnitIds) return recommended;
+  const selected = findCombinations(adults, children, nights, checkIn, checkOut, units, pricing, selectedUnitIds)[0];
+  if (!selected) return recommended;
+  const key = (combo: ApartmentCombination) => combo.units.map(unit => unit.unitId).sort().join("+");
+  return recommended.some(combo => key(combo) === key(selected)) ? recommended : [selected, ...recommended].slice(0, 4);
 }

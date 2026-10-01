@@ -1,3 +1,7 @@
+"use client";
+
+import { usePricing } from "@/components/PricingProvider";
+import type { PricingSnapshot } from "@/lib/website-pricing";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { GallerySlider } from "./GallerySlider";
@@ -10,9 +14,9 @@ import type { ApartmentType } from "@/types/apartment";
  * Der „Ab"-Preis wird aus den Saisonpreisen abgeleitet, damit er nicht veraltet,
  * wenn SEASON_PERIODS gepflegt wird.
  */
-function buildSubtitle(type: ApartmentType): string {
-  const config = getApartmentConfig(type);
-  const { min } = seasonPriceRange(type, config.basePrice);
+function buildSubtitle(type: ApartmentType, pricing: PricingSnapshot): string {
+  const config = getApartmentConfig(type, pricing);
+  const { min } = seasonPriceRange(type, config.basePrice, pricing);
   return `${config.size} m² · Bis zu ${config.maxGuests} Personen · Ab ${min} € / Nacht · Winterpreis ab ${config.winterPrice} €`;
 }
 
@@ -67,6 +71,7 @@ const GALLERY_SECTIONS = [
 ];
 
 export function Gallery() {
+  const { pricing } = usePricing();
   return (
     <section id="galerie" className="py-(--spacing-section-sm) md:py-(--spacing-section) bg-primary-pale/50">
       <Container>
@@ -80,7 +85,7 @@ export function Gallery() {
             <GallerySlider
               key={section.title}
               title={section.title}
-              subtitle={buildSubtitle(section.type)}
+              subtitle={buildSubtitle(section.type, pricing)}
               images={section.images}
             />
           ))}

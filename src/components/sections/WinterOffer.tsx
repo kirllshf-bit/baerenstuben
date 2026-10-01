@@ -17,9 +17,11 @@
  */
 
 import { Snowflake } from "lucide-react";
+import { formatEuro } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { OfferFootnote } from "@/components/ui/OfferFootnote";
 import { StrikePrice, SavingsBadge } from "@/components/ui/PriceSavings";
+import { usePricing } from "@/components/PricingProvider";
 import { getApartmentConfig } from "@/lib/apartments";
 
 type WinterVariant = "strip" | "card" | "pill" | "den" | "den-min" | "overlay";
@@ -28,11 +30,7 @@ type WinterVariant = "strip" | "card" | "pill" | "den" | "den-min" | "overlay";
  * Alle Varianten werben mit dem Einstiegspreis der Kategorie „Apartment".
  * Werte aus der Config statt hartkodiert, damit sie nicht auseinanderlaufen.
  */
-const APARTMENT = getApartmentConfig("apartment");
-const WINTER_RATE = APARTMENT.winterPrice;
-const PORTAL_RATE = APARTMENT.portalPrice;
-/** Ersparnis pro Nacht gegenüber dem Preis auf Buchungsportalen. */
-const WINTER_SAVINGS = Math.max(0, PORTAL_RATE - WINTER_RATE);
+
 
 /** Aktiv vom 01.11. bis einschließlich 15.03. (jahresübergreifend). */
 export function isWinterSeason(date: Date = new Date()): boolean {
@@ -149,12 +147,18 @@ interface WinterOfferProps {
 }
 
 export function WinterOffer({ variant = "card", className }: WinterOfferProps) {
+  const { pricing } = usePricing();
+  const APARTMENT = getApartmentConfig("apartment", pricing);
+  const WINTER_RATE = APARTMENT.winterPrice;
+  const PORTAL_RATE = APARTMENT.portalPrice;
+  /** Ersparnis pro Nacht gegenüber dem Preis auf Buchungsportalen. */
+  const WINTER_SAVINGS = Math.max(0, Math.round((PORTAL_RATE - WINTER_RATE) * 100) / 100);
   /* ── Variante A: Schmaler Hinweis-Streifen ───────────────────────── */
   if (variant === "strip") {
     return (
       <div
         className={cn(
-          "flex flex-wrap items-center justify-center gap-x-4 gap-y-2.5",
+          "flex min-w-0 flex-wrap items-center justify-center gap-x-4 gap-y-2.5",
           "rounded-[var(--radius-btn)] border border-secondary-light bg-primary-pale",
           "px-5 py-3 text-[15px] text-primary-dark",
           className
@@ -166,8 +170,8 @@ export function WinterOffer({ variant = "card", className }: WinterOfferProps) {
         </span>
         <span className="h-3.5 w-px bg-secondary/70" />
         <span>
-          Ab 5 Nächten nur <span className="font-bold text-primary">{WINTER_RATE} € pro Nacht</span>
-          <span className="ml-1.5 text-[13px]">
+          Ab 5 Nächten nur <span className="font-bold text-primary">{formatEuro(WINTER_RATE)} pro Nacht</span>
+          <span hidden={WINTER_SAVINGS <= 0} className="ml-1.5 text-[13px]">
             statt <StrikePrice amount={PORTAL_RATE} />
             <OfferFootnote offer="direkt" />
           </span>
@@ -176,7 +180,7 @@ export function WinterOffer({ variant = "card", className }: WinterOfferProps) {
         <SavingsBadge
           savings={WINTER_SAVINGS}
           variant="solid"
-          label={`${WINTER_SAVINGS} € / Nacht gespart`}
+          label={`${formatEuro(WINTER_SAVINGS)} / Nacht gespart`}
         />
         <span className="h-3.5 w-px bg-secondary/70" />
         <span className="text-[13px] tracking-wide text-warm-500">01.11. – 15.03.</span>
@@ -199,8 +203,8 @@ export function WinterOffer({ variant = "card", className }: WinterOfferProps) {
           <Snowflake className="w-4 h-4 text-accent-blue" strokeWidth={1.75} />
         </span>
         <span className="text-sm text-warm-900">
-          Ab 5 Nächten nur <b className="text-primary">{WINTER_RATE} €</b> / Nacht
-          <span className="ml-1 text-[13px]">
+          Ab 5 Nächten nur <b className="text-primary">{formatEuro(WINTER_RATE)}</b> / Nacht
+          <span hidden={WINTER_SAVINGS <= 0} className="ml-1 text-[13px]">
             statt <StrikePrice amount={PORTAL_RATE} />
             <OfferFootnote offer="direkt" />
           </span>
@@ -210,7 +214,7 @@ export function WinterOffer({ variant = "card", className }: WinterOfferProps) {
         <SavingsBadge
           savings={WINTER_SAVINGS}
           variant="solid"
-          label={`−${WINTER_SAVINGS} €`}
+          label={`−${formatEuro(WINTER_SAVINGS)}`}
           className="flex-shrink-0"
         />
       </div>
@@ -234,9 +238,9 @@ export function WinterOffer({ variant = "card", className }: WinterOfferProps) {
           <b className="font-semibold text-primary-dark">Winterpreis</b> · ab 5 Nächten · 01.11.–15.03. (außer 21.12.–03.01.)
         </span>
         <span className="flex items-center gap-1.5 whitespace-nowrap text-xs">
-          <StrikePrice amount={PORTAL_RATE} />
+          {WINTER_SAVINGS > 0 && <><StrikePrice amount={PORTAL_RATE} /><OfferFootnote offer="direkt" /></>}
           <span className="rounded-full bg-primary px-3.5 py-1.5 font-semibold text-white">
-            {WINTER_RATE} € / Nacht
+            {formatEuro(WINTER_RATE)} / Nacht
           </span>
         </span>
         <OfferFootnote offer="winter" className="text-warm-500" />
@@ -343,7 +347,7 @@ export function WinterOffer({ variant = "card", className }: WinterOfferProps) {
           </p>
           <p className={cn("text-white/70", isMin ? "text-[1rem]" : "text-[0.9rem]")}>
             {isMin ? "… und gönnen Ihnen Winterruhe: " : "… und schenken Ihnen Ruhe: "}
-            ab 5 Nächten nur <b className="font-semibold text-white">{WINTER_RATE} € pro Nacht</b>
+            ab 5 Nächten nur <b className="font-semibold text-white">{formatEuro(WINTER_RATE)} pro Nacht</b>
             <OfferFootnote offer="winter" className="text-white" />.
             {/* Auf dunklem Grund trägt das Terrakotta zu wenig Kontrast – hier
                 zurückhaltendes Weiß, die Ersparnis trägt das Spar-Badge. */}
@@ -351,9 +355,9 @@ export function WinterOffer({ variant = "card", className }: WinterOfferProps) {
               <SavingsBadge
                 savings={WINTER_SAVINGS}
                 variant="solid"
-                label={`Sie sparen ${WINTER_SAVINGS} € / Nacht`}
+                label={`Sie sparen ${formatEuro(WINTER_SAVINGS)} / Nacht`}
               />
-              <span className="text-white/55">
+              <span hidden={WINTER_SAVINGS <= 0} className="text-white/55">
                 statt{" "}
                 <StrikePrice
                   amount={PORTAL_RATE}
@@ -399,16 +403,16 @@ export function WinterOffer({ variant = "card", className }: WinterOfferProps) {
           Winterangebot
         </span>
         <div className="font-serif text-xl font-medium leading-tight text-primary-dark">
-          Ab 5 Nächten nur <span className="font-semibold text-primary">{WINTER_RATE} € pro Nacht</span>
+          Ab 5 Nächten nur <span className="font-semibold text-primary">{formatEuro(WINTER_RATE)} pro Nacht</span>
           <OfferFootnote offer="winter" />
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <SavingsBadge
             savings={WINTER_SAVINGS}
             variant="solid"
-            label={`Sie sparen ${WINTER_SAVINGS} € / Nacht`}
+            label={`Sie sparen ${formatEuro(WINTER_SAVINGS)} / Nacht`}
           />
-          <span className="text-[13px] text-warm-500">
+          <span hidden={WINTER_SAVINGS <= 0} className="text-[13px] text-warm-500">
             statt <StrikePrice amount={PORTAL_RATE} /> auf Buchungsportalen
             <OfferFootnote offer="direkt" />
           </span>

@@ -17,9 +17,11 @@
  */
 
 import { Percent } from "lucide-react";
+import { formatEuro } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { OfferFootnote } from "@/components/ui/OfferFootnote";
 import { SavingsBadge } from "@/components/ui/PriceSavings";
+import { usePricing } from "@/components/PricingProvider";
 import { getApartmentConfig } from "@/lib/apartments";
 import { seasonPriceRange } from "@/lib/seasons";
 
@@ -33,19 +35,21 @@ interface SeasonOfferProps {
  * Kategorie „Apartment" im günstigsten Saisonzeitraum – ohne den 5%-Rabatt und
  * ohne das Winterangebot, damit die Zahl bedingungsfrei erreichbar bleibt.
  */
-const APARTMENT = getApartmentConfig("apartment");
-const DIRECT_SAVINGS = Math.max(
-  0,
-  APARTMENT.portalPrice - seasonPriceRange("apartment", APARTMENT.basePrice).min
-);
+
 
 export function SeasonOffer({ variant = "pill", className }: SeasonOfferProps) {
+  const { pricing } = usePricing();
+  const APARTMENT = getApartmentConfig("apartment", pricing);
+  const DIRECT_SAVINGS = Math.max(
+    0,
+    Math.round((APARTMENT.portalPrice - seasonPriceRange("apartment", APARTMENT.basePrice, pricing).min) * 100) / 100
+  );
   /* ── Variante A: Schmaler Hinweis-Streifen ───────────────────────── */
   if (variant === "strip") {
     return (
       <div
         className={cn(
-          "flex flex-wrap items-center justify-center gap-x-4 gap-y-2.5",
+          "flex min-w-0 flex-wrap items-center justify-center gap-x-4 gap-y-2.5",
           "rounded-[var(--radius-btn)] border border-[#cfe0d1] bg-accent-green-light",
           "px-5 py-3 text-[15px] text-warm-900",
           className
@@ -60,16 +64,19 @@ export function SeasonOffer({ variant = "pill", className }: SeasonOfferProps) {
           Ab 5 Nächten <span className="font-bold text-primary">5 % Rabatt</span>
           <OfferFootnote offer="saison" />
         </span>
-        <span className="h-3.5 w-px bg-[#b7ccb9]" />
-        <span className="inline-flex items-center gap-2 whitespace-nowrap text-[13px] text-warm-700">
-          <SavingsBadge
-            savings={DIRECT_SAVINGS}
-            variant="solid"
-            label={`Bis zu ${DIRECT_SAVINGS} € / Nacht sparen`}
-          />
-          gegenüber Buchungsportalen
-          <OfferFootnote offer="direkt" className="text-warm-500" />
-        </span>
+        {DIRECT_SAVINGS > 0 && <>
+          <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-2 text-[13px] text-warm-700">
+            <SavingsBadge
+              savings={DIRECT_SAVINGS}
+              variant="solid"
+              label={`Bis zu ${formatEuro(DIRECT_SAVINGS)} / Nacht sparen`}
+            />
+            <span className="whitespace-nowrap">
+              gegenüber Buchungsportalen
+              <OfferFootnote offer="direkt" className="text-warm-500" />
+            </span>
+          </span>
+        </>}
       </div>
     );
   }
@@ -95,7 +102,7 @@ export function SeasonOffer({ variant = "pill", className }: SeasonOfferProps) {
       <SavingsBadge
         savings={DIRECT_SAVINGS}
         variant="soft"
-        label={`bis −${DIRECT_SAVINGS} € / Nacht`}
+        label={`bis −${formatEuro(DIRECT_SAVINGS)} / Nacht`}
         className="hidden sm:inline-flex"
       />
       <OfferFootnote offer="saison" className="text-warm-500" />

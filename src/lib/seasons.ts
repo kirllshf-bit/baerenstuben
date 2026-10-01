@@ -1,3 +1,4 @@
+import { priceRange, type PricingSnapshot } from "./website-pricing";
 import type { ApartmentType } from "@/types/apartment";
 
 /**
@@ -93,8 +94,10 @@ export function seasonRate(type: ApartmentType, dateStr: string): number | null 
  */
 export function seasonPriceRange(
   type: ApartmentType,
-  basePrice: number
+  basePrice: number,
+  pricing?: PricingSnapshot
 ): { min: number; max: number } {
+  if (pricing) return priceRange(pricing, type);
   const all = [basePrice, ...SEASON_PERIODS.map((p) => p.prices[type])];
   return { min: Math.min(...all), max: Math.max(...all) };
 }

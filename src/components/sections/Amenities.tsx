@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { cn } from "@/lib/utils";
-import { APARTMENTS } from "@/lib/apartments";
+import { effectiveFutureRates } from "@/lib/website-pricing";
+import { usePricing } from "@/components/PricingProvider";
+import { getApartmentConfig } from "@/lib/apartments";
 import { seasonPriceRange } from "@/lib/seasons";
 import { formatEuro } from "@/lib/utils";
 import { OfferFootnote } from "@/components/ui/OfferFootnote";
@@ -94,11 +96,15 @@ const TABS: { type: ApartmentType; label: string }[] = [
 
 export function Amenities() {
   const [activeTab, setActiveTab] = useState<ApartmentType>("apartment");
-  const config = APARTMENTS.find((a) => a.type === activeTab)!;
+  const { pricing } = usePricing();
+  const config = getApartmentConfig(activeTab, pricing);
   const specific = APARTMENT_SPECIFIC[activeTab];
+  const personRules = effectiveFutureRates(pricing, activeTab);
+  const firstRule = personRules[0];
+  const varyingPersonRules = personRules.some(rule => rule.included_guests !== firstRule.included_guests || rule.extra_person_price !== firstRule.extra_person_price);
   // Spanne über alle Saisonzeiträume; fällt auf einen einzelnen Preis zurück,
   // sobald keine Saisonpreise mehr hinterlegt sind.
-  const { min: minRate, max: maxRate } = seasonPriceRange(activeTab, config.basePrice);
+  const { min: minRate, max: maxRate } = seasonPriceRange(activeTab, config.basePrice, pricing);
   const hasPriceRange = minRate !== maxRate;
   // Größte Ersparnis pro Nacht gegenüber den Buchungsportalen, erreicht im
   // günstigsten Saisonzeitraum. Bewusst OHNE das Winterangebot gerechnet –
@@ -167,7 +173,7 @@ export function Amenities() {
             <div className="bg-warm-50 border border-warm-200 rounded-[var(--radius-card)] p-5 md:p-6">
               <div className="flex items-baseline gap-2 mb-2">
                 <span className="font-serif text-3xl font-medium text-primary">
-                  {hasPriceRange ? `${minRate} – ${formatEuro(maxRate)}` : formatEuro(config.basePrice)}
+                  {hasPriceRange ? `${formatEuro(minRate)} – ${formatEuro(maxRate)}` : formatEuro(minRate)}
                 </span>
                 <span className="text-warm-500 text-sm">/ Nacht</span>
               </div>
@@ -194,7 +200,7 @@ export function Amenities() {
               )}
 
               <p className="text-warm-500 text-sm">
-                Inklusive {config.includedGuests} Personen · Jede weitere Person +{formatEuro(config.extraPersonPrice)}
+                {varyingPersonRules ? "Inkludierte Personen und Personenaufpreise hängen vom Reisezeitraum ab. Details im Anfrageformular." : `Inklusive ${firstRule.included_guests} Personen · Jede weitere Person +${formatEuro(firstRule.extra_person_price)}`}
               </p>
               <p className="text-warm-400 text-xs mt-2">
                 Maximal {config.maxGuests} Personen · Mindestaufenthalt 2 Nächte

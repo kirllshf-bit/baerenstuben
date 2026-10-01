@@ -12,6 +12,7 @@ npm run build                  # Next.js build (Node.js server, not static expor
 npm run start                  # Production server on localhost:3000
 npm run generate-availability  # One-off: regenerate static availability JSONs (legacy, not used in production)
 npm run lint                   # ESLint
+npm run test:pricing           # Pricing, CRM publication and shared-core parity tests
 ```
 
 `npm run build` runs `next build`. The site runs as a **Node.js server** (not static export). iCal availability data is fetched live via API route `/api/availability`.
@@ -46,43 +47,43 @@ npm run lint                   # ESLint
 
 There are 5 physical apartments but only 3 types shown in Amenities. The "Apartment (49 m²)" type has 3 identical units. The calendar shows a date as blocked only when **all 5 units** are simultaneously booked. The inquiry form uses `src/lib/combinations.ts` to find valid combinations of available units for the group size. Singles shown first (if they fit); multi-unit combos shown for larger groups. Max 4 options, deduplicated by type-signature (never shows "Apartment 1/2/3" — always just "Apartment").
 
-### Apartment Pricing (`src/lib/apartments.ts`)
+### Live Pricing from the CRM
 
-| Type | Base/night | Included guests | Max guests | Max adults | +person |
-|------|-----------|----------------|------------|------------|---------|
-| `apartment` (49m²) | €130 | 2 | 4 | 2 | +€5 |
-| `apartment-gross` (58m²) | €140 | 2 | 4 | 2 | +€5 |
-| `apartment-premium` (60m²) | €170 | 4 | 5 | 4 | +€5 |
+`src/lib/server-pricing.ts` reads `get_website_pricing()` from the CRM Supabase
+project using `CRM_SUPABASE_URL` and `CRM_SUPABASE_ANON_KEY`. Never use a service-role
+key here. Apply CRM migration `0009_website_pricing.sql` before enabling the connection.
+The homepage is dynamic and requests use `cache: "no-store"`.
 
-Minimum stay: 2 nights. At least 1 adult required. Child age max: 17. **5% discount** applied automatically for stays of 5+ nights.
+The shared `src/lib/website-pricing.ts` must remain identical in this project and
+`../baerenstuben-crm`. It validates the snapshot and calculates every night using
+its effective seasonal rate and person rules. The latest starting period wins;
+if starts tie, the earliest bounded end wins. Period ends are inclusive nights.
+`apartments.ts` holds capacity and display metadata; `seasons.ts` retains legacy
+helpers. Hardcoded amounts are used only when neither CRM variable is configured.
 
-### Seasonal Pricing (`src/lib/seasons.ts`)
+`PricingProvider` refreshes every 30 seconds while visible and on window focus.
+All price cards, seasonal terms and the inquiry form use that same snapshot.
+Temporary client refresh failures retain the last validated snapshot with a hint.
+A configured connection failure blocks new server quotes; it never falls back to
+hardcoded prices. Legal pages hide price terms and remain independent of pricing.
 
-`basePrice` above is the fallback for nights **outside** all season periods. Season rates are applied **per night** — a stay crossing a period boundary is billed night by night (see `nightlyRateSegments()` in `apartments.ts`, exposed as `segments` / `isMixedSeason` on the price result).
+Minimum stay: 2 nights; at least 1 adult; child age max: 17. The winter offer
+applies from November 1 through March 14, excluding December 21 through January 3,
+when all nights qualify and the stay is at least 5 nights. Otherwise a 5% discount
+applies from 5 nights. Discount rounding is per apartment to match CRM bookings.
+Winter and portal comparison amounts are edited in CRM settings. Portal values
+only support savings comparisons; every strike-through uses
+`<OfferFootnote offer="direkt" />`, and comparisons are hidden without savings.
 
-Periods use **year-specific** dates (season 2026/27 only) and must be extended manually for the next season. `start` and `end` are both **inclusive overnight dates** — `end: "2026-10-01"` means the night 01.→02.10. still belongs to that period, so periods abut without gaps.
+`/api/inquiry` validates ISO dates, guest counts, consent and exact selected unit
+IDs, reloads current pricing and recalculates the total before creating email
+transport. Client monetary values and display labels are ignored. A changed
+pricing version returns HTTP 409, invalid input HTTP 400, unavailable pricing
+HTTP 503. Failed validation sends no email.
 
-| Period | apartment | -gross | -premium |
-|---|---|---|---|
-| 07.09.–01.10.2026 | €115 | €120 | €145 |
-| 02.10.–31.10.2026 | €130 | €140 | €170 |
-| 01.11.–20.12.2026 | €95 | €105 | €135 |
-| 21.12.2026–03.01.2027 | €140 | €150 | €180 |
-| 04.01.–14.03.2027 | €95 | €105 | €135 |
-
-### Winter Offer vs. Peak Holiday
-
-The winter offer (€80/90/110, 5+ nights, entire stay inside 01.11.–15.03.) is **year-recurring** (day/month), unlike the season periods. It is **suspended 21.12.–03.01.** (`isPeakHolidayNight()` in `seasons.ts`) — otherwise a New Year's stay would drop from €140 to €80/night. The 5% long-stay discount still applies over the holidays.
-
-### Direct-Booking Advantage (strike-through prices)
-
-`portalPrice` (140/150/180) is the price of the same unit **on Booking.com / Airbnb**, where the portal commission is added. It is a comparison figure only and never enters any calculation. `calculatePrice()` derives `portalTotal` and `savings` (`portalTotal − totalAfterDiscount`, clamped at 0); `findCombinations()` sums both across units.
-
-UI building blocks live in `src/components/ui/PriceSavings.tsx` (`StrikePrice`, `SavingsBadge`). **Every strike-through price must carry `<OfferFootnote offer="direkt" />`** — it points to the footnote ⁴ explanation in the footer. A strike-through price without a stated reference is legally attackable in Germany; the crossed-out figure is explicitly *not* a former price of ours.
-
-Over 21.12.–03.01. the direct price equals the portal price, so `savings` is 0 and no badge renders. Keep `portalPrice` in sync with the actual portal listings.
-
-Pricing tests: `npx tsx scripts/test-pricing.ts`.
+Run `npm run test:pricing` for legacy pricing regression tests, current CRM
+snapshot/quote checks and shared-core parity (when the sibling CRM exists).
+See README.md for publishing order and configuration.
 
 ### Mapbox Map (`src/components/ui/MapboxMap.tsx`)
 
@@ -99,6 +100,7 @@ Typography: `Lora` (serif, headings) + `Source Sans 3` (sans, body), loaded via 
 Defined in `.env.local`. Key variables:
 - `ICAL_APARTMENT_1` through `ICAL_APARTMENT_PREMIUM` — Booking.com iCal URLs
 - `ICAL_APARTMENT_1_AIRBNB` through `ICAL_APARTMENT_PREMIUM_AIRBNB` — Airbnb iCal URLs (union-merged per unit)
+- `CRM_SUPABASE_URL`, `CRM_SUPABASE_ANON_KEY` — current prices from the CRM (public credentials only)
 - `EMAIL_TO` — recipient for inquiry emails
 - `NEXT_PUBLIC_MAPBOX_TOKEN` — Mapbox GL JS public token
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` — IONOS SMTP for `/api/inquiry` email sending
